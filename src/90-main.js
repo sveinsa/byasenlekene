@@ -4,6 +4,7 @@
 buildBackdrop();
 resize();
 Snd.muted = store.get('muted', false);
+Assist.on = store.get('easy', true);
 document.getElementById('bMute').innerHTML = Snd.muted ? '&#128263;' : '&#128266;';
 document.getElementById('bMute').addEventListener('pointerdown', e => { e.preventDefault(); Snd.init(); Snd.setMuted(!Snd.muted); });
 $('bPause').addEventListener('pointerdown', e => { e.preventDefault(); Snd.init(); Input.press('p'); setTimeout(() => Input.release('p'), 60); });

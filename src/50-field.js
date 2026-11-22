@@ -150,15 +150,22 @@ class LongJumpScene extends FieldBase {
     if (p.mode === 'run' || p.mode === 'gauge') {
       if (Input.hit.l) this.tap('l');
       if (Input.hit.r) this.tap('r');
+      if (Input.hit.a && !p.started) p.started = true;
       p.v = Math.max(0, p.v - LJ.K * p.v * dt);
+      if (EZ() && p.started) p.v += (15 - p.v) * Math.min(1, dt * 1.2);   /* hjelp: løperen får selv opp farten */
       p.x += p.v * dt; p.ph += p.v * dt * 1.5;
       if (p.mode === 'run' && Input.hit.a) {
-        if (p.x >= LJ.BOARD - 12) { p.mode = 'gauge'; p.gt = 0; Snd.beep(900, .06); }
+        if (p.x >= LJ.BOARD - (EZ() ? 20 : 12)) { p.mode = 'gauge'; p.gt = 0; Snd.beep(900, .06); }
         else Snd.beep(200, .08);
       }
       if (p.mode === 'gauge') {
-        p.gt += dt; p.ang = pingpong(p.gt, 5, 55, 55);
+        p.gt += dt; p.ang = pingpong(p.gt, 5, 55, EZ() ? 30 : 55);
         if (Input.down.a === 0 || Input.rel.a) { this.takeoff(); return; }
+      }
+      /* hjelp: hopper automatisk ved planken i stedet for å bli ugyldig */
+      if (EZ() && p.x >= LJ.BOARD - .25 && p.started) {
+        if (p.mode === 'run') p.ang = pingpong(this.t * 37, 12, 34, 30);
+        this.takeoff(); return;
       }
       if (p.x > LJ.BOARD + .02) { this.foul(p.mode === 'gauge' ? 'TRÅKKET OVER!' : 'INGEN HOPP!'); }
       this.cam = p.x - 4.2;
@@ -167,7 +174,7 @@ class LongJumpScene extends FieldBase {
   takeoff() {
     const p = this.p, v = p.v, th = p.ang;
     if (p.x > LJ.BOARD) { this.foul('TRÅKKET OVER!'); return; }
-    const dMax = .068 * v * v, angF = Math.max(.35, 1 - Math.pow((th - 22) / 30, 2));
+    const dMax = .068 * v * v, angF = EZ() ? Math.max(.6, 1 - Math.pow((th - 22) / 40, 2)) : Math.max(.35, 1 - Math.pow((th - 22) / 30, 2));
     const Df = dMax * angF, lost = LJ.BOARD - p.x;
     const dist = Math.max(.2, Df - lost);
     const Tf = Math.max(.45, Df / (.95 * Math.max(v, 3)));
@@ -253,10 +260,10 @@ class LongJumpScene extends FieldBase {
     hudBox(98, 4, 100, 14);
     txt('FART', 104, 7.4, '#aab6dd', 1);
     meter(133, 8.6, 59, 5, p.v / 10.4, p.v > 8.5 ? C.green : C.orange);
-    if (p.mode === 'gauge') drawProtractor(312, 96, 52, p.ang, 16, 28, 'SATS');
-    if (p.mode === 'run' && p.x >= LJ.BOARD - 12 && p.x < LJ.BOARD && Math.floor(T * 4) % 2 === 0) txt(isTouch() ? 'HOLD A-KNAPPEN INNE!' : 'TRYKK OG HOLD A!', 200, 50, C.yellow, 1, 'c');
-    if (p.mode === 'gauge' && Math.floor(T * 6) % 2 === 0) txt('SLIPP A RETT FØR PLANKEN!', 200, 50, C.white, 1, 'c');
-    if (!p.started && this.state === 'run') { txt(isTouch() ? 'TRYKK RASKT PÅ LØPEFELTET' : 'LØP MED < > ETTER HVERANDRE', 200, 56, C.white, 1, 'c'); }
+    if (p.mode === 'gauge') drawProtractor(312, 96, 52, p.ang, EZ() ? 12 : 16, EZ() ? 34 : 28, 'SATS');
+    if (p.mode === 'run' && p.x >= LJ.BOARD - (EZ() ? 20 : 12) && p.x < LJ.BOARD && Math.floor(T * 4) % 2 === 0) txt(EZ() ? 'HOLD A FOR Å VELGE VINKEL (VALGFRITT)' : (isTouch() ? 'HOLD A-KNAPPEN INNE!' : 'TRYKK OG HOLD A!'), 200, 50, C.yellow, 1, 'c');
+    if (p.mode === 'gauge' && Math.floor(T * 6) % 2 === 0) txt(EZ() ? 'SLIPP A NÅR VINKELEN ER GRØNN!' : 'SLIPP A RETT FØR PLANKEN!', 200, 50, C.white, 1, 'c');
+    if (!p.started && this.state === 'run') { txt(EZ() ? (isTouch() ? 'TRYKK LØP FOR Å STARTE - DU HOPPER SELV' : 'TRYKK < > FOR Å STARTE - DU HOPPER SELV') : (isTouch() ? 'TRYKK RASKT PÅ LØPEFELTET' : 'LØP MED < > ETTER HVERANDRE'), 200, 56, C.white, 1, 'c'); }
     if (this.state === 'result') {
       const bad = this.result == null;
       panel(110, 40, 180, bad ? 34 : 46, .85);
@@ -292,16 +299,17 @@ class ShotScene extends FieldBase {
     if (this.state === 'end') return this.endUpdate(dt);
     const p = this.p;
     p.particles.forEach(q => { q.x += q.vx * dt; q.y += q.vy * dt; q.vy -= 9 * dt; q.t -= dt; }); p.particles = p.particles.filter(q => q.t > 0);
-    if (p.mode === 'ready') { if (Input.hit.a) { p.mode = 'glide'; p.gt = 0; p.P = 12; Snd.beep(700, .06); } }
+    if (p.mode === 'ready') { if (Input.hit.a) { p.mode = 'glide'; p.gt = 0; p.P = EZ() ? 45 : 12; Snd.beep(700, .06); } }
     else if (p.mode === 'glide') {
       p.gt += dt;
-      if (Input.hit.a) { p.P = Math.min(100, p.P + 9); Snd.tick(); }
-      p.P = Math.max(0, p.P - 18 * dt);
-      p.ang = pingpong(p.gt, 15, 65, 60);
-      p.x += (.55 + .012 * p.P) * dt * 1.0 + .0;
+      const ez = EZ();
+      if (Input.hit.a) { p.P = Math.min(100, p.P + (ez ? 15 : 9)); Snd.tick(); }
+      p.P = Math.max(0, p.P - (ez ? 6 : 18) * dt);
+      p.ang = pingpong(p.gt, ez ? 25 : 15, ez ? 55 : 65, ez ? 30 : 60);
+      p.x += (ez ? .42 + .008 * p.P : .55 + .012 * p.P) * dt;
       p.ph = p.gt * 6;
       if (Input.hit.b) { this.release(); }
-      else if (p.x >= SP.RING) { p.x = SP.RING; this.foul(); }
+      else if (p.x >= SP.RING) { p.x = SP.RING; if (ez) this.release(); else this.foul(); }
     } else if (p.mode === 'throw') {
       p.t += dt;
       if (!p.ball && p.t >= .26) {
@@ -331,7 +339,7 @@ class ShotScene extends FieldBase {
   }
   release() {
     const p = this.p, th = p.ang * D2R, Pf = p.P / 100;
-    const angF = Math.max(.3, 1 - Math.pow((p.ang - 40) / 38, 2)), posF = .6 + .4 * Math.pow(clamp(p.x / SP.RING, 0, 1), 2);
+    const angF = EZ() ? Math.max(.6, 1 - Math.pow((p.ang - 40) / 46, 2)) : Math.max(.3, 1 - Math.pow((p.ang - 40) / 38, 2)), posF = .6 + .4 * Math.pow(clamp(p.x / SP.RING, 0, 1), 2);
     const D = 4 + 12.5 * Pf * angF * posF;
     const x0 = p.x + .45, hr = 1.85;
     const v = solveShot(x0, hr, th, SP.RING + D);
@@ -388,7 +396,7 @@ class ShotScene extends FieldBase {
     this.attHud();
     this.drawBoard(this.boardRows());
     if (p.mode === 'glide') {
-      drawProtractor(312, 96, 52, p.ang, 34, 46, 'UTKAST');
+      drawProtractor(312, 96, 52, p.ang, EZ() ? 30 : 34, EZ() ? 50 : 46, 'UTKAST');
       hudBox(100, 4, 100, 14);
       txt('KRAFT', 105, 7.4, '#aab6dd', 1);
       meter(141, 8.6, 53, 5, p.P / 100, p.P > 75 ? C.green : (p.P > 40 ? C.orange : C.red));
@@ -435,6 +443,7 @@ class HighJumpScene extends FieldBase {
   }
   enter() {
     Music.stop();
+    Object.assign(HJ, EZ() ? { ZW: .45, ZY: .6, DW: 1.4 } : { ZW: .25, ZY: .55, DW: .8 });
     this.cpuMax = {};
     Game.cpu().forEach(ci => { const sk = (Game.skill && Game.skill[ci]) || 0; this.cpuMax[ci] = Math.max(1.4, Math.floor((1.72 + .07 * sk + gauss() * .06) / .05 + .0001) * .05); });
     this.barH = 1.55; this.misses = 0; this.cleared = null; this.passed = 0;
@@ -493,7 +502,8 @@ class HighJumpScene extends FieldBase {
   takeoff() {
     const p = this.p, v = Math.max(p.v, .5);
     const vx = Math.max(1.5, .55 * v), d = HJ.BAR - p.x, e = d - hjIdeal(v);
-    const Q = clamp(1 - Math.pow(Math.abs(e) / (e < 0 ? HJ.DW * 1.6 : HJ.DW), 2), 0, 1);
+    let Q = clamp(1 - Math.pow(Math.abs(e) / (e < 0 ? HJ.DW * 1.6 : HJ.DW), 2), 0, 1);
+    if (EZ() && Math.abs(e) < HJ.ZY) Q = Math.max(Q, .55);   /* hjelp: alt i det gule feltet godkjennes */
     p.air = { x0: p.x, vx, T: HJ.TAIR, t: 0, d, sc: d / (vx * HJ.TAIR), qs: Q, e, tB: .4, v, form: gauss() * .025 };
     p.mode = 'air';
     p.flash = Q > .88 ? 'PERFEKT SATS!' : Q > .6 ? 'GOD SATS' : (e > 0 ? 'FOR TIDLIG' : 'FOR SEN'); p.flashT = 1.1;
@@ -509,7 +519,7 @@ class HighJumpScene extends FieldBase {
     p.x = a.x0 + a.vx * a.T * s;
     if (!a.crossed && p.x >= HJ.BAR) {
       a.crossed = true;
-      const hip = this.hipAt(a, s);
+      const hip = (EZ() && Math.abs(a.e) < HJ.ZY) ? this.hipAt(a, .5) : this.hipAt(a, s);   /* hjelp: god sats = full høyde over lista */
       a.hipCross = hip;
       if (hip < this.barH + .10) { a.knock = true; p.barFall = { x: HJ.BAR, y: this.barH, vx: .8, vy: 0, a: 0, t: 0 }; Snd.bar(); }
     }

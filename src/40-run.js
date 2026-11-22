@@ -87,7 +87,8 @@ function drawFinishLine(px) {
 /* ======================= 60 M HEKK ======================= */
 const H_POS = [13.72, 22.86, 32.0, 41.14, 50.28], H_LEN = 60;
 const HK = { K: 0.714, IMP: 1.0, VCAP: 10.4, TAU: .23, APEX: 1.05, DUR: .5, CLEAR: .8 };
-function hurdleLoss(tau) {
+function hurdleLoss(tau, ez) {
+  if (ez) { if (tau >= .14 && tau <= .45) return 0; if (tau > .45) return .03 + (tau - .45) * 1.0; return .03 + (.14 - tau) * 1.0; }
   if (tau >= .175 && tau <= .285) return 0;
   if (tau > .285) return .03 + (tau - .285) * 1.3;
   return .03 + (.175 - tau) * 1.6;
@@ -202,13 +203,14 @@ class HurdlesScene {
         const j = p.nextH, d = j < 5 ? H_POS[j] - p.x : 99, tau = d / Math.max(p.v, .5);
         if (d > 6 || j >= 5) { p.mode = 'air'; p.airT = 0; p.air = { dur: .32, apex: .45, loss: .05, q: 'hop' }; this.msg('FOR TIDLIG'); Snd.jump(); }
         else {
-          const loss = hurdleLoss(tau);
-          p.mode = 'air'; p.airT = 0; p.air = { dur: HK.DUR, apex: HK.APEX, tau, loss, q: loss === 0 ? 'perfect' : (tau > .285 ? 'early' : 'late') };
+          const ez = EZ(), loss = hurdleLoss(tau, ez);
+          p.mode = 'air'; p.airT = 0; p.air = { dur: ez ? .6 : HK.DUR, apex: ez ? 1.2 : HK.APEX, tau, loss, q: loss === 0 ? 'perfect' : (tau > (ez ? .45 : .285) ? 'early' : 'late') };
           Snd.jump();
         }
       }
       /* fysikk */
       p.v = Math.max(0, p.v - HK.K * p.v * dt);
+      if (EZ() && p.mode !== 'stumble') p.v += (10.5 - p.v) * Math.min(1, dt * 1.5);   /* hjelp: løperen får selv opp farten, trykk gir bonus */
       if (p.mode === 'stumble') { p.stumble -= dt; p.v = Math.max(0, p.v - 3 * dt); if (p.stumble <= 0) p.mode = 'run'; }
       if (p.mode === 'air') {
         p.airT += dt;
@@ -390,10 +392,11 @@ class Run800Scene {
       p.taps = p.taps.filter(t => this.realT - t < 1);
       p.rS += (p.taps.length - p.rS) * Math.min(1, dt * 5);
       let vt = p.rS < 1 ? p.rS * 4.7 : 4 + .7 * Math.min(p.rS, 7.5);
+      if (EZ()) vt = 5.4 + .45 * Math.min(p.rS, 6);   /* hjelp: går selv i jogg, ca. 3 trykk/s gir vanlig tempo */
       const rem = R8.LEN - p.s;
       if (Input.hit.a) {
-        if (!p.sprint && rem <= 150 && p.E > 1) { p.sprint = true; p.sprintMul = 1 + .3 * (.35 + .65 * p.E / 100); this.msg('SPURT!', 1.5); Snd.perfect(); Snd.cheer(1.5, .15); }
-        else if (!p.sprint && rem > 150) { p.E = Math.max(0, p.E - 3); this.msg('FOR TIDLIG!', .8); Snd.beep(200, .1); }
+        if (!p.sprint && rem <= (EZ() ? 220 : 150) && p.E > 1) { p.sprint = true; p.sprintMul = 1 + .3 * (.35 + .65 * p.E / 100); this.msg('SPURT!', 1.5); Snd.perfect(); Snd.cheer(1.5, .15); }
+        else if (!p.sprint && rem > (EZ() ? 220 : 150)) { p.E = Math.max(0, p.E - 3); this.msg('FOR TIDLIG!', .8); Snd.beep(200, .1); }
       }
       p.E -= 2.1 * Math.pow(Math.max(p.v, .1) / 6.8, 4) * (p.sprint ? 1.3 : 1) * dt;
       if (p.E <= 0) { p.E = 0; vt = Math.min(vt, 4.6); if (!p.wall) { p.wall = true; this.msg('TOM FOR ENERGI!', 1.6); Snd.groan(); } }
@@ -497,7 +500,7 @@ class Run800Scene {
       g.fillStyle = lgrad(g, -8, 10, [[0, '#ffe68a'], [1, '#c98f00']]); g.beginPath(); g.moveTo(-8, 9); g.quadraticCurveTo(-8, -8, 0, -9); g.quadraticCurveTo(8, -8, 8, 9); g.closePath(); g.fill();
       g.fillRect(-10, 8, 20, 2.6); ball(g, 0, 13, 2.2, '#7a5a00', .2); g.restore();
     }
-    if (this.phase === 'race' && p.started && !p.sprint && rem <= 150 && !p.fin && Math.floor(this.t * 4) % 2 === 0 && !(this.belled && this.bellT < 2.6)) txt(isTouch() ? 'TRYKK SPURT!' : 'TRYKK A = SPURT!', 200, 70, C.yellow, 2, 'c', C.dred);
+    if (this.phase === 'race' && p.started && !p.sprint && rem <= (EZ() ? 220 : 150) && !p.fin && Math.floor(this.t * 4) % 2 === 0 && !(this.belled && this.bellT < 2.6)) txt(isTouch() ? 'TRYKK SPURT!' : 'TRYKK A = SPURT!', 200, 70, C.yellow, 2, 'c', C.dred);
     if (this.phase === 'start' && sq.state === 'pre') txt(this.training ? 'TRENING - 800 M' : '800 M', 200, 40, C.white, 2, 'c');
     if (this.phase === 'race' && !p.started) txt('LØP!', 200, 70, C.yellow, 2, 'c');
     if (this.phase === 'finish') {

@@ -121,15 +121,16 @@ class TitleScene {
   ctl() { return { pad: 'nav', a: 'VELG', b: '' }; }
   enter() { Music.play('title'); }
   items() {
-    return ['Mangekamp', 'Treningsmodus', 'Slik spiller du', () => 'Lyd: ' + (Snd.muted ? 'av' : 'på')];
+    return ['Mangekamp', 'Treningsmodus', 'Slik spiller du', () => 'Vanskelighet: ' + (EZ() ? 'lett' : 'normal'), () => 'Lyd: ' + (Snd.muted ? 'av' : 'på')];
   }
   update(dt) {
-    this.sel = navIndex(this.sel, 4);
+    this.sel = navIndex(this.sel, 5);
     if (this.t > .25 && Input.hit.a) {
       Snd.ok();
       if (this.sel === 0) { Game.mode = 'dec'; Scenes.go(new ClubScene()); }
       else if (this.sel === 1) { Game.mode = 'train'; Scenes.go(new ClubScene()); }
       else if (this.sel === 2) Scenes.go(new HelpScene());
+      else if (this.sel === 3) { Assist.on = !Assist.on; store.set('easy', Assist.on); }
       else Snd.setMuted(!Snd.muted);
     }
   }
@@ -155,8 +156,8 @@ class TitleScene {
     txt('MANGEKAMP', 200, 47.4, C.white, 1.5, 'c', C.dred);
     slant(g, 92, 62.4, 216, 11, 4, 'rgba(8,13,38,.8)');
     txt('DALGÅRD FRIIDRETTSBANE · TRONDHEIM', 200, 63.4, '#dfe7ff', 1, 'c');
-    panel(120, 132, 160, 62, .72);
-    drawMenu(this.items(), this.sel, 200, 138, 14);
+    panel(110, 114, 180, 78, .72);
+    drawMenu(this.items(), this.sel, 200, 119.5, 14);
     txt(isTouch() ? 'TRYKK PÅ ET VALG' : '< > ELLER OPP/NED = BLA   A = VELG', 200, 202, C.white, 1, 'c');
     txt('5 ØVELSER · 5 KLUBBER · 1 GULLMEDALJE', 200, 214, '#aab6dd', 1, 'c');
   }
@@ -182,6 +183,7 @@ class HelpScene {
       ['800 M: JEVN RYTME, SPAR KREFTER. A = SPURT (150 M IGJEN)', C.white],
       ['LØPENE: INNTA PLASSENE - KLAR - SKUDD. TYVSTART = ADVARSEL', C.white],
       ['SISTE RUNDE PÅ 800 M MARKERES MED BJELLE', C.white],
+      ['VANSKELIGHET LETT (STANDARD): FART KOMMER AV SEG SELV, TIMING ER BREDERE. BYTT I MENYEN', BC.cyan],
       ['MANGEKAMP: POENG ETTER HVER ØVELSE. BESTE SAMMENLAGT VINNER', C.white]
     ];
     L.forEach((l, i) => txt(l[0], 200, 38 + i * 14, l[1], 1, 'c'));

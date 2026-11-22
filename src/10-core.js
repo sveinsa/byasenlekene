@@ -11,6 +11,9 @@ const g = cv.getContext('2d');
 g.setTransform(S, 0, 0, S, 0, 0); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
 
 /* ---------- små hjelpere ---------- */
+/* hjelpemodus (lett): mer tilgivende timing og automatisk fart. Standard PÅ. */
+const Assist = { on: true };
+const EZ = () => Assist.on;
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
 const rnd = (a, b) => a + Math.random() * (b - a);

@@ -11,6 +11,9 @@ Tegningen skjer i 3× oppløsning (1200×675) og skaleres jevnt til skjermen. Sp
 
 Alle stier er relative, så det fungerer også i en undermappe. Filen `.nojekyll` gjør at GitHub ikke prosesserer noe.
 
+## Vanskelighet
+Hovedmenyen har valget **Vanskelighet: lett / normal**. Lett er standard og gjør spillet enklere på mobil: løperen får selv opp farten (taksing gir bonus), timingvinduene er bredere (hekker, høydehopp, vinkel), lengdehopp hopper automatisk ved planken, kulestøt støter selv ved ringkanten og 800 m går i jogg uten trykk. Valget huskes på enheten.
+
 ## Kontroller
 **Mobil (anbefalt liggende):** stort gult LØP-felt til venstre (trykk raskt og jevnt, feltet bytter selv mellom venstre og høyre). Knappene A og B til høyre skifter navn etter øvelsen. Minnestyring (lyd, fullskjerm, pause) ligger i sidekanten. Menyvalg kan trykkes direkte.
 
