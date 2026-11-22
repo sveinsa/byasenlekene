@@ -238,7 +238,7 @@ class HurdlesScene {
     }
   }
   done() {
-    const vals = [null, null, null, null, null], tx = ['', '', '', '', ''];
+    const vals = Game.nulls(), tx = Game.nulls('');
     this.cpus.forEach(c => vals[c.ci] = c.tf);
     if (this.pl.tf != null && !this.dqed && this.phase !== 'dq') vals[Game.club] = this.pl.tf; else tx[Game.club] = 'DQ';
     Game.eventDone(0, vals, tx, this.training);
@@ -294,7 +294,7 @@ class HurdlesScene {
     hudBox(4, 4, 80, 32);
     txt('TID', 9, 6, C.cyan || '#7fa6ff', 1);
     const shown = this.phase === 'start' ? 0 : (p.fin ? p.tf : this.clock);
-    txt(fmt2(shown), 80, 4, C.white, 2, 'r');
+    txt(fmt2(Cls.real(0, shown)), 80, 4, C.white, 2, 'r');
     txt('FART', 9, 23.4, '#9fb4ee', 1);
     meter(34, 25.2, 46, 4.6, p.v / 10.4, p.v > 9 ? '#2ea558' : '#f39c34');
     /* fremdriftsstripe */
@@ -311,7 +311,7 @@ class HurdlesScene {
       if (this.phase === 'finish') {
         panel(100, 50, 200, 56, .85);
         txt('MÅL!', 200, 56, C.yellow, 2, 'c');
-        txt(fmt2(p.tf) + ' S', 200, 76, C.white, 2, 'c');
+        txt(fmt2(Cls.real(0, p.tf)) + ' S', 200, 76, C.white, 2, 'c');
         txt(this.place + '. PLASS', 200, 94, this.place === 1 ? C.yellow : C.white, 1, 'c');
         if (e > 1.5 && Math.floor(e * 2) % 2 === 0) txt('A = FORTSETT', 200, 112, C.white, 1, 'c');
       }
@@ -416,7 +416,7 @@ class Run800Scene {
     }
   }
   done() {
-    const vals = [null, null, null, null, null], tx = ['', '', '', '', ''];
+    const vals = Game.nulls(), tx = Game.nulls('');
     this.cpus.forEach(c => vals[c.ci] = c.tf);
     if (this.pl.tf != null && this.phase !== 'dq') vals[Game.club] = this.pl.tf; else tx[Game.club] = 'DQ';
     Game.eventDone(4, vals, tx, this.training);
@@ -468,7 +468,7 @@ class Run800Scene {
     const p = this.pl, sq = this.seq;
     hudBox(4, 4, 92, 44);
     txt('TID', 9, 6, '#7fa6ff', 1);
-    txt(this.phase === 'start' ? '0.0' : fmtTime1(p.fin ? p.tf : this.realT * R8.TS), 92, 4, C.white, 2, 'r');
+    txt(this.phase === 'start' ? '0.0' : fmtTime1(Cls.real(4, p.fin ? p.tf : this.realT * R8.TS)), 92, 4, C.white, 2, 'r');
     txt('ENERGI', 9, 23, '#9fb4ee', 1);
     meter(50, 24.6, 42, 4.6, p.E / 100, p.E > 40 ? '#2ea558' : (p.E > 15 ? '#f39c34' : '#e0242c'));
     txt('TEMPO', 9, 34, '#9fb4ee', 1);
@@ -506,7 +506,7 @@ class Run800Scene {
     if (this.phase === 'finish') {
       panel(100, 50, 200, 56, .85);
       txt('MÅL!', 200, 56, C.yellow, 2, 'c');
-      txt(fmtTime(p.tf), 200, 76, C.white, 2, 'c');
+      txt(fmtTime(Cls.real(4, p.tf)), 200, 76, C.white, 2, 'c');
       txt(this.pPlace + '. PLASS', 200, 94, this.pPlace === 1 ? C.yellow : C.white, 1, 'c');
       if (this.endT > 1.5 && Math.floor(this.endT * 2) % 2 === 0) txt('A = FORTSETT', 200, 112, C.white, 1, 'c');
     }

@@ -13,24 +13,57 @@ const CLUBS = [
   { id: 'ranheim', name: 'Ranheim IL', ab: 'RAN', c1: '#2f66d0', c2: '#ffffff', sh: '#1f3f90', skin: C.skin2, hair: '#1a1a1a' },
   { id: 'strindheim', name: 'Strindheim IL', ab: 'STR', c1: '#f6d51f', c2: '#1c3f95', sh: '#1c3f95', skin: C.skin4, hair: '#d9b45a' },
   { id: 'nidelv', name: 'Nidelv IL', ab: 'NID', c1: '#2b2e3c', c2: '#d8232a', sh: '#1b1d28', skin: C.skin3, hair: '#1a1a1a' },
-  { id: 'tfik', name: 'Trondheim Friidrett', ab: 'TFI', c1: '#1f8f4a', c2: '#ffffff', sh: '#14633a', skin: C.skin1, hair: '#7a3b1e' }
+  { id: 'tfik', name: 'Trondheim Friidrett', ab: 'TFI', c1: '#1f8f4a', c2: '#ffffff', sh: '#14633a', skin: C.skin1, hair: '#7a3b1e' },
+  { id: 'utleira', name: 'Utleira IL', ab: 'UTL', c1: '#f08a1c', c2: '#15151c', sh: '#15151c', skin: C.skin2, hair: '#6b3a1c' }
 ];
 const EVENTS = [
-  { id: 'hurdles', name: '60 m hekk', kind: 'time', best: 7.8, worst: 12.0, f: v => fmt2(v) + ' s', ref: '7,80 S = 1000 P' },
-  { id: 'longjump', name: 'Lengdehopp', kind: 'dist', best: 7.5, worst: 3.0, f: v => fmt2(v) + ' m', ref: '7,50 M = 1000 P' },
-  { id: 'shotput', name: 'Kulestøt', kind: 'dist', best: 16, worst: 5, f: v => fmt2(v) + ' m', ref: '16,00 M = 1000 P' },
-  { id: 'highjump', name: 'Høydehopp', kind: 'dist', best: 2.2, worst: 1.0, f: v => fmt2(v) + ' m', ref: '2,20 M = 1000 P' },
-  { id: 'run800', name: '800 m', kind: 'time', best: 108, worst: 170, f: v => fmtTime(v), ref: '1:48 = 1000 P' }
+  { id: 'hurdles', name: '60 m hekk', kind: 'time', f: v => fmt2(v) + ' s' },
+  { id: 'longjump', name: 'Lengdehopp', kind: 'dist', f: v => fmt2(v) + ' m' },
+  { id: 'shotput', name: 'Kulestøt', kind: 'dist', f: v => fmt2(v) + ' m' },
+  { id: 'highjump', name: 'Høydehopp', kind: 'dist', f: v => fmt2(v) + ' m' },
+  { id: 'run800', name: '800 m', kind: 'time', f: v => fmtTime(v) }
 ];
-/* enkel poengtabell: lineær mellom «null poeng» og «1000 poeng» */
-function evPoints(ev, v) {
-  if (v == null || isNaN(v)) return 0;
-  const p = ev.kind === 'time' ? (ev.worst - v) / (ev.worst - ev.best) : (v - ev.worst) / (ev.best - ev.worst);
-  return clamp(Math.round(p * 1000), 0, 1200);
-}
+/* ---------- Aldersklasse, kjønn og Tyrvingpoeng ----------
+   Referanseresultat (≈ 1000 Tyrvingpoeng) per klasse 11–15 år. Tabellene er TILNÆRMET etter nivået i klassene
+   (NFFs eksakte Tyrvingtabell er ikke brukt) – lett å justere her. Rekkefølge: 11, 12, 13, 14, 15 år. */
+const CLASS_REF = {
+  J: { hurdles: [10.2, 9.8, 9.5, 9.2, 9.0], longjump: [4.70, 5.00, 5.35, 5.65, 5.90], shotput: [8.2, 9.2, 10.4, 11.4, 12.4], highjump: [1.30, 1.38, 1.46, 1.52, 1.58], run800: [160, 155, 150, 145, 140] },
+  G: { hurdles: [10.0, 9.6, 9.3, 9.0, 8.8], longjump: [4.85, 5.20, 5.60, 6.05, 6.50], shotput: [8.6, 9.8, 10.8, 11.8, 12.5], highjump: [1.32, 1.40, 1.50, 1.60, 1.68], run800: [155, 150, 145, 135, 128] }
+};
+/* spillets «gjennomsnittlige klubbløper» (motstanderne) gir ca. 750 poeng i klassen */
+const GAME_AVG = [8.44, 5.5, 10.3, 1.72, 121.8], TYP = .88;
+const Cls = {
+  g: 'J', age: 13,
+  ref(i) { return CLASS_REF[this.g][EVENTS[i].id][this.age - 11]; },
+  hjOff() { return Math.round((1.72 - TYP * this.ref(3)) / .05) * .05; },
+  /* spillverdi -> resultat i valgt klasse (monoton, beholder rekkefølgen) */
+  real(i, v) {
+    if (v == null || isNaN(v)) return v;
+    const R = this.ref(i);
+    if (i === 3) return +(v - this.hjOff()).toFixed(2);
+    if (i === 0 || i === 4) return v * (2 - TYP) * R / GAME_AVG[i];
+    return v * TYP * R / GAME_AVG[i];
+  },
+  /* motsatt vei for lengde/kule: resultat (m) -> spillavstand */
+  inv(i, r) { return r / (TYP * this.ref(i) / GAME_AVG[i]); },
+  fmt(i, v) { return v == null ? '-' : EVENTS[i].f(this.real(i, v)); },
+  pts(i, r) {
+    if (r == null || isNaN(r)) return 0;
+    const R = this.ref(i), d = (i === 0 || i === 4) ? (R - r) / R : (r - R) / R, s = [2.0, 2.2, 2.2, 2.6, 2.0][i];
+    return clamp(Math.round(1000 + 1000 * d * s), 10, 1600);
+  },
+  refText(i) {
+    const R = this.ref(i);
+    return (i === 4 ? Math.floor(R / 60) + ':' + String(Math.round(R % 60)).padStart(2, '0') : EVENTS[i].f(R).replace('.', ',')) .toUpperCase() + ' = 1000 TYRVINGPOENG';
+  },
+  name() { return (this.g === 'J' ? 'JENTER ' : 'GUTTER ') + this.age + ' ÅR'; },
+  short() { return this.g + this.age; },
+  key() { return this.g + this.age; },
+  girl() { return this.g === 'J'; }
+};
 function athCols(ci) {
   const k = CLUBS[ci];
-  return { c1: k.c1, c2: k.c2, sh: k.sh, skin: k.skin, skinD: shade(k.skin, 0.8), hair: k.hair, shoe: '#f4f4f4', sole: '#e8742c' };
+  return { c1: k.c1, c2: k.c2, sh: k.sh, skin: k.skin, skinD: shade(k.skin, 0.8), hair: k.hair, shoe: '#f4f4f4', sole: '#e8742c', girl: Cls.girl() };
 }
 
 /* ---------- utøver-skjelett ---------- */
@@ -86,7 +119,14 @@ function drawFigure(ctx, x, gy, ppm, f, col, dir = 1, off = 0) {
   /* hode */
   const hr = Math.max(2, .115 * ppm), hd = (.07 + .115) * ppm;
   const cx = sx + S(f.to + f.ht) * hd, cy = sy - Co(f.to + f.ht) * hd;
+  if (col.girl) {                                                                  /* jente: hestehale (bak hodet) */
+    const bk = -dir, sw = Math.sin(f.to * D2R * 2) * hr * .12;
+    Dc(cx + bk * hr * .9, cy + hr * .02, hr * .6, col.hair);
+    Dc(cx + bk * hr * 1.62, cy + hr * .7 + sw, hr * .55, col.hair);
+    Dc(cx + bk * hr * 1.92, cy + hr * 1.45 + sw, hr * .46, col.hair);
+  }
   Dc(cx, cy, hr, col.hair);
+  if (col.girl) Dc(cx - dir * hr * .78, cy - hr * .02, Math.max(.7, hr * .2), col.c2);   /* hårstrikk i klubbfarge */
   Dc(cx + dir * hr * .28, cy + hr * .22, hr * .82, col.skin);
   if (ppm >= 20) Rc(cx + dir * hr * .5, cy - hr * .08, Math.max(.9, ppm * .05), Math.max(.9, ppm * .05), '#111');
   /* tegn: 1) mørk silhuett-kontur  2) farger  3) lys/skygge for rund, tredimensjonal følelse */

@@ -20,7 +20,7 @@ canvas{position:absolute;display:block;image-rendering:auto;background:#05081a;t
 #hint{display:none;position:fixed;color:#7d8aa8;font-size:12px;padding:0 10px;box-sizing:border-box;line-height:1.3}
 .mini{position:fixed;width:34px;height:34px;border-radius:10px;border:1.5px solid rgba(160,190,255,.45);box-sizing:border-box;
   background:linear-gradient(180deg,rgba(30,46,104,.8),rgba(8,13,38,.85));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.4);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:6;cursor:pointer;left:0;top:0}
-#touch{position:fixed;left:0;top:0;right:0;bottom:0;z-index:4;display:none;pointer-events:none;--s:90px;--pw:110px;--ph:260px}
+#touch{position:fixed;left:0;top:0;right:0;bottom:0;z-index:4;display:none;pointer-events:none;--s:90px;--pw:110px;--cw:110px;--ph:260px}
 body.touch #touch{display:block}
 .zone{position:absolute;display:flex;align-items:center;justify-content:center;pointer-events:none;box-sizing:border-box}
 body.land #zR{flex-direction:column;justify-content:flex-end;gap:calc(var(--s)*.22);padding-bottom:calc(var(--s)*.35)}
@@ -40,8 +40,10 @@ body.port #zL{align-items:flex-end;padding-bottom:calc(var(--s)*.25)}
 #kB small{font-size:calc(var(--s)*.12);letter-spacing:.3px}
 #kB{display:none;width:calc(var(--s)*.76);height:calc(var(--s)*.76);background:linear-gradient(180deg,rgba(70,130,255,.75),rgba(16,40,130,.88));border-color:rgba(160,195,255,.95);font-size:calc(var(--s)*.3)}
 body[data-b="1"] #kB{display:flex}
-#dpad{display:none;grid-template-columns:1fr 1fr;gap:calc(var(--s)*.1);width:var(--pw)}
-#dpad .btn{width:auto;height:calc(var(--s)*.62);font-size:calc(var(--s)*.26)}
+#dpad{display:none;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3px;width:var(--cw);height:var(--cw)}
+#dpad .btn{width:auto;height:auto;border-radius:20%;font-size:calc(var(--cw)*.14)}
+#dpad .hub{grid-area:2/2;pointer-events:none;border-radius:50%;margin:16%;background:radial-gradient(circle at 40% 35%,rgba(120,146,230,.45),rgba(8,13,38,.7));border:1.5px solid rgba(170,196,255,.3)}
+#dpad [data-k=u]{grid-area:1/2}#dpad [data-k=l]{grid-area:2/1}#dpad [data-k=r]{grid-area:2/3}#dpad [data-k=d]{grid-area:3/2}
 #runpad{display:none;width:var(--pw);height:var(--ph);border-radius:calc(var(--s)*.3);background:linear-gradient(180deg,rgba(255,214,70,.3),rgba(120,84,0,.5));border-color:rgba(255,214,90,.9);color:#ffe27a;font-size:calc(var(--s)*.34)}
 #runpad small{font-size:calc(var(--s)*.16)}
 #runpad.on{background:linear-gradient(180deg,rgba(255,226,120,.6),rgba(180,130,10,.7))}
@@ -59,8 +61,9 @@ body[data-pad="none"] #zL{visibility:hidden}
 <div id="touch">
   <div class="zone" id="zL">
     <div id="dpad">
-      <div class="btn" data-k="l">&#9664;</div><div class="btn" data-k="r">&#9654;</div>
-      <div class="btn" data-k="u">&#9650;</div><div class="btn" data-k="d">&#9660;</div>
+      <div class="btn" data-k="u">&#9650;</div>
+      <div class="btn" data-k="l">&#9664;</div><div class="hub"></div><div class="btn" data-k="r">&#9654;</div>
+      <div class="btn" data-k="d">&#9660;</div>
     </div>
     <div class="btn" id="runpad"><span id="runLab">LØP</span><small id="runSub">TRYKK RASKT</small></div>
   </div>
@@ -243,12 +246,12 @@ function resize() {
     const s = Math.min(iw / W, ih / H); cw = W * s; ch = H * s; cl = (iw - cw) / 2; ct = (ih - ch) / 2;
     mini('bMute', iw - 42, 6); mini('bFs', iw - 84, 6); $('bPause').style.display = 'none'; $('hint').style.display = 'none';
   } else if (land) {
-    const gut = clamp(iw * .13, 88, 190), s = Math.min((iw - 2 * gut) / W, ih / H);
+    const gut = clamp(iw * .145, 96, 200), s = Math.min((iw - 2 * gut) / W, ih / H);
     cw = W * s; ch = H * s; cl = (iw - cw) / 2; ct = (ih - ch) / 2;
     const gw = cl, sz = Math.min(gw * .8, ih * .27, 124);
     $('zL').style.cssText = `left:0;top:0;width:${px(gw)};height:${px(ih)}`;
     $('zR').style.cssText = `left:${px(iw - gw)};top:0;width:${px(gw)};height:${px(ih)}`;
-    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(gw * .86)); tc.style.setProperty('--ph', px(Math.min(ih * .72, 330)));
+    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(gw * .86)); tc.style.setProperty('--cw', px(Math.min(gw * .94, ih * .5, 190))); tc.style.setProperty('--ph', px(Math.min(ih * .72, 330)));
     const mx = iw - gw / 2 - 17;
     mini('bMute', mx, 8); mini('bFs', mx, 50); mini('bPause', mx, 92); $('bPause').style.display = 'flex'; $('hint').style.display = 'none';
   } else {
@@ -256,7 +259,7 @@ function resize() {
     const top = ch + 26, zh = ih - top, sz = Math.min(iw * .27, zh * .3, 132);
     $('zL').style.cssText = `left:0;top:${px(top)};width:${px(iw / 2)};height:${px(zh)}`;
     $('zR').style.cssText = `left:${px(iw / 2)};top:${px(top)};width:${px(iw / 2)};height:${px(zh)}`;
-    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(iw * .44)); tc.style.setProperty('--ph', px(Math.min(zh * .8, 260)));
+    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(iw * .44)); tc.style.setProperty('--cw', px(Math.min(iw * .44, zh * .55, 200))); tc.style.setProperty('--ph', px(Math.min(zh * .8, 260)));
     mini('bMute', iw - 42, ch + 4); mini('bFs', iw - 84, ch + 4); mini('bPause', iw - 126, ch + 4); $('bPause').style.display = 'flex';
     const h = $('hint'); h.style.display = 'block'; h.style.top = px(ch + 6); h.style.right = px(136); h.style.left = '0';
   }
@@ -588,24 +591,57 @@ const CLUBS = [
   { id: 'ranheim', name: 'Ranheim IL', ab: 'RAN', c1: '#2f66d0', c2: '#ffffff', sh: '#1f3f90', skin: C.skin2, hair: '#1a1a1a' },
   { id: 'strindheim', name: 'Strindheim IL', ab: 'STR', c1: '#f6d51f', c2: '#1c3f95', sh: '#1c3f95', skin: C.skin4, hair: '#d9b45a' },
   { id: 'nidelv', name: 'Nidelv IL', ab: 'NID', c1: '#2b2e3c', c2: '#d8232a', sh: '#1b1d28', skin: C.skin3, hair: '#1a1a1a' },
-  { id: 'tfik', name: 'Trondheim Friidrett', ab: 'TFI', c1: '#1f8f4a', c2: '#ffffff', sh: '#14633a', skin: C.skin1, hair: '#7a3b1e' }
+  { id: 'tfik', name: 'Trondheim Friidrett', ab: 'TFI', c1: '#1f8f4a', c2: '#ffffff', sh: '#14633a', skin: C.skin1, hair: '#7a3b1e' },
+  { id: 'utleira', name: 'Utleira IL', ab: 'UTL', c1: '#f08a1c', c2: '#15151c', sh: '#15151c', skin: C.skin2, hair: '#6b3a1c' }
 ];
 const EVENTS = [
-  { id: 'hurdles', name: '60 m hekk', kind: 'time', best: 7.8, worst: 12.0, f: v => fmt2(v) + ' s', ref: '7,80 S = 1000 P' },
-  { id: 'longjump', name: 'Lengdehopp', kind: 'dist', best: 7.5, worst: 3.0, f: v => fmt2(v) + ' m', ref: '7,50 M = 1000 P' },
-  { id: 'shotput', name: 'Kulestøt', kind: 'dist', best: 16, worst: 5, f: v => fmt2(v) + ' m', ref: '16,00 M = 1000 P' },
-  { id: 'highjump', name: 'Høydehopp', kind: 'dist', best: 2.2, worst: 1.0, f: v => fmt2(v) + ' m', ref: '2,20 M = 1000 P' },
-  { id: 'run800', name: '800 m', kind: 'time', best: 108, worst: 170, f: v => fmtTime(v), ref: '1:48 = 1000 P' }
+  { id: 'hurdles', name: '60 m hekk', kind: 'time', f: v => fmt2(v) + ' s' },
+  { id: 'longjump', name: 'Lengdehopp', kind: 'dist', f: v => fmt2(v) + ' m' },
+  { id: 'shotput', name: 'Kulestøt', kind: 'dist', f: v => fmt2(v) + ' m' },
+  { id: 'highjump', name: 'Høydehopp', kind: 'dist', f: v => fmt2(v) + ' m' },
+  { id: 'run800', name: '800 m', kind: 'time', f: v => fmtTime(v) }
 ];
-/* enkel poengtabell: lineær mellom «null poeng» og «1000 poeng» */
-function evPoints(ev, v) {
-  if (v == null || isNaN(v)) return 0;
-  const p = ev.kind === 'time' ? (ev.worst - v) / (ev.worst - ev.best) : (v - ev.worst) / (ev.best - ev.worst);
-  return clamp(Math.round(p * 1000), 0, 1200);
-}
+/* ---------- Aldersklasse, kjønn og Tyrvingpoeng ----------
+   Referanseresultat (≈ 1000 Tyrvingpoeng) per klasse 11–15 år. Tabellene er TILNÆRMET etter nivået i klassene
+   (NFFs eksakte Tyrvingtabell er ikke brukt) – lett å justere her. Rekkefølge: 11, 12, 13, 14, 15 år. */
+const CLASS_REF = {
+  J: { hurdles: [10.2, 9.8, 9.5, 9.2, 9.0], longjump: [4.70, 5.00, 5.35, 5.65, 5.90], shotput: [8.2, 9.2, 10.4, 11.4, 12.4], highjump: [1.30, 1.38, 1.46, 1.52, 1.58], run800: [160, 155, 150, 145, 140] },
+  G: { hurdles: [10.0, 9.6, 9.3, 9.0, 8.8], longjump: [4.85, 5.20, 5.60, 6.05, 6.50], shotput: [8.6, 9.8, 10.8, 11.8, 12.5], highjump: [1.32, 1.40, 1.50, 1.60, 1.68], run800: [155, 150, 145, 135, 128] }
+};
+/* spillets «gjennomsnittlige klubbløper» (motstanderne) gir ca. 750 poeng i klassen */
+const GAME_AVG = [8.44, 5.5, 10.3, 1.72, 121.8], TYP = .88;
+const Cls = {
+  g: 'J', age: 13,
+  ref(i) { return CLASS_REF[this.g][EVENTS[i].id][this.age - 11]; },
+  hjOff() { return Math.round((1.72 - TYP * this.ref(3)) / .05) * .05; },
+  /* spillverdi -> resultat i valgt klasse (monoton, beholder rekkefølgen) */
+  real(i, v) {
+    if (v == null || isNaN(v)) return v;
+    const R = this.ref(i);
+    if (i === 3) return +(v - this.hjOff()).toFixed(2);
+    if (i === 0 || i === 4) return v * (2 - TYP) * R / GAME_AVG[i];
+    return v * TYP * R / GAME_AVG[i];
+  },
+  /* motsatt vei for lengde/kule: resultat (m) -> spillavstand */
+  inv(i, r) { return r / (TYP * this.ref(i) / GAME_AVG[i]); },
+  fmt(i, v) { return v == null ? '-' : EVENTS[i].f(this.real(i, v)); },
+  pts(i, r) {
+    if (r == null || isNaN(r)) return 0;
+    const R = this.ref(i), d = (i === 0 || i === 4) ? (R - r) / R : (r - R) / R, s = [2.0, 2.2, 2.2, 2.6, 2.0][i];
+    return clamp(Math.round(1000 + 1000 * d * s), 10, 1600);
+  },
+  refText(i) {
+    const R = this.ref(i);
+    return (i === 4 ? Math.floor(R / 60) + ':' + String(Math.round(R % 60)).padStart(2, '0') : EVENTS[i].f(R).replace('.', ',')) .toUpperCase() + ' = 1000 TYRVINGPOENG';
+  },
+  name() { return (this.g === 'J' ? 'JENTER ' : 'GUTTER ') + this.age + ' ÅR'; },
+  short() { return this.g + this.age; },
+  key() { return this.g + this.age; },
+  girl() { return this.g === 'J'; }
+};
 function athCols(ci) {
   const k = CLUBS[ci];
-  return { c1: k.c1, c2: k.c2, sh: k.sh, skin: k.skin, skinD: shade(k.skin, 0.8), hair: k.hair, shoe: '#f4f4f4', sole: '#e8742c' };
+  return { c1: k.c1, c2: k.c2, sh: k.sh, skin: k.skin, skinD: shade(k.skin, 0.8), hair: k.hair, shoe: '#f4f4f4', sole: '#e8742c', girl: Cls.girl() };
 }
 
 /* ---------- utøver-skjelett ---------- */
@@ -661,7 +697,14 @@ function drawFigure(ctx, x, gy, ppm, f, col, dir = 1, off = 0) {
   /* hode */
   const hr = Math.max(2, .115 * ppm), hd = (.07 + .115) * ppm;
   const cx = sx + S(f.to + f.ht) * hd, cy = sy - Co(f.to + f.ht) * hd;
+  if (col.girl) {                                                                  /* jente: hestehale (bak hodet) */
+    const bk = -dir, sw = Math.sin(f.to * D2R * 2) * hr * .12;
+    Dc(cx + bk * hr * .9, cy + hr * .02, hr * .6, col.hair);
+    Dc(cx + bk * hr * 1.62, cy + hr * .7 + sw, hr * .55, col.hair);
+    Dc(cx + bk * hr * 1.92, cy + hr * 1.45 + sw, hr * .46, col.hair);
+  }
   Dc(cx, cy, hr, col.hair);
+  if (col.girl) Dc(cx - dir * hr * .78, cy - hr * .02, Math.max(.7, hr * .2), col.c2);   /* hårstrikk i klubbfarge */
   Dc(cx + dir * hr * .28, cy + hr * .22, hr * .82, col.skin);
   if (ppm >= 20) Rc(cx + dir * hr * .5, cy - hr * .08, Math.max(.9, ppm * .05), Math.max(.9, ppm * .05), '#111');
   /* tegn: 1) mørk silhuett-kontur  2) farger  3) lys/skygge for rund, tredimensjonal følelse */
@@ -1010,26 +1053,34 @@ const Scenes = {
   go(s) { this.cur = s; s.t = 0; this.fade = 1; Input.clear(); Amb.set(s.amb != null ? s.amb : .035); if (s.enter) s.enter(); }
 };
 const Game = {
-  mode: 'dec', club: 0, totals: [0, 0, 0, 0, 0], evIdx: 0, paused: false, trainEv: 0, bestHist: {},
-  cpu() { return [0, 1, 2, 3, 4].filter(i => i !== this.club); },
+  mode: 'dec', club: 0, totals: [0, 0, 0, 0, 0, 0], field: [0, 1, 2, 3, 4], evIdx: 0, paused: false, trainEv: 0, bestHist: {},
+  cpu() { return this.field.filter(i => i !== this.club); },
+  nulls(v = null) { return CLUBS.map(() => v); },
+  /* deltakerfelt: din klubb + 4 tilfeldige av de andre fem */
+  pickField() {
+    const others = CLUBS.map((c, i) => i).filter(i => i !== this.club);
+    for (let i = others.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [others[i], others[j]] = [others[j], others[i]]; }
+    this.field = [this.club].concat(others.slice(0, 4));
+  },
   pause(p) { if (Scenes.cur && Scenes.cur.pausable) { this.paused = p; if (p) Input.clear(); } },
   toTitle() { this.paused = false; Music.stop(); Scenes.go(new TitleScene()); },
   startDecathlon() {
-    this.mode = 'dec'; this.totals = [0, 0, 0, 0, 0]; this.evIdx = 0; this.history = []; this.newSkills();
+    this.mode = 'dec'; this.totals = this.nulls(0); this.evIdx = 0; this.history = []; this.pickField(); this.newSkills();
     Scenes.go(new IntroScene(0, false));
   },
-  newSkills() { this.skill = [0, 1, 2, 3, 4].map(() => clamp(gauss() * .7, -1.3, 1.3)); },
-  startTraining() { this.mode = 'train'; this.newSkills(); Scenes.go(new TrainSelectScene()); },
+  newSkills() { this.skill = CLUBS.map(() => clamp(gauss() * .7, -1.3, 1.3)); },
+  startTraining() { this.mode = 'train'; this.pickField(); this.newSkills(); Scenes.go(new TrainSelectScene()); },
   makeEvent(i, training) {
     return [new HurdlesScene(training), new LongJumpScene(training), new ShotScene(training), new HighJumpScene(training), new Run800Scene(training)][i];
   },
   /* vals[ci] = tall eller null, txt[ci] = tekst ved ugyldig/DQ/NM */
   eventDone(i, vals, txt, training) {
     const ev = EVENTS[i];
-    const pts = vals.map(v => evPoints(ev, v));
-    const order = [0, 1, 2, 3, 4].sort((a, b) => cmpVal(ev, vals[a], vals[b]) || (a === Game.club ? -1 : 0));
+    vals = vals.map(v => Cls.real(i, v));                 /* spillverdi -> resultat i valgt klasse */
+    const pts = vals.map(v => Cls.pts(i, v));
+    const order = this.field.slice().sort((a, b) => cmpVal(ev, vals[a], vals[b]) || (a === Game.club ? -1 : 0));
     if (training) { Scenes.go(new TrainResultScene(i, vals, txt, pts, order)); return; }
-    pts.forEach((p, ci) => this.totals[ci] += p);
+    this.field.forEach(ci => this.totals[ci] += pts[ci]);
     this.history.push({ vals, pts, order });
     Scenes.go(new ResultScene(i, vals, txt, pts, order));
   }
@@ -1131,8 +1182,8 @@ class TitleScene {
     this.sel = navIndex(this.sel, 5);
     if (this.t > .25 && Input.hit.a) {
       Snd.ok();
-      if (this.sel === 0) { Game.mode = 'dec'; Scenes.go(new ClubScene()); }
-      else if (this.sel === 1) { Game.mode = 'train'; Scenes.go(new ClubScene()); }
+      if (this.sel === 0) { Game.mode = 'dec'; Scenes.go(new ClassScene()); }
+      else if (this.sel === 1) { Game.mode = 'train'; Scenes.go(new ClassScene()); }
       else if (this.sel === 2) Scenes.go(new HelpScene());
       else if (this.sel === 3) { Assist.on = !Assist.on; store.set('easy', Assist.on); }
       else Snd.setMuted(!Snd.muted);
@@ -1144,7 +1195,7 @@ class TitleScene {
     drawRunTrack(cam);
     for (let i = 0; i < 5; i++) {
       const sp = 70 + i * 9, x = ((t * sp + i * 97) % 560) - 80;
-      drawRunnerAt(i, x, i, poseRun(t * (11 + i * .6) + i, 1, 9));
+      drawRunnerAt([0, 5, 2, 3, 1][i], x, i, poseRun(t * (11 + i * .6) + i, 1, 9));
     }
     /* logo i sendingsstil */
     g.fillStyle = lgrad(g, 0, 78, [[0, 'rgba(6,10,30,.72)'], [1, 'rgba(6,10,30,0)']]); g.fillRect(0, 0, W, 78);
@@ -1163,7 +1214,7 @@ class TitleScene {
     panel(110, 114, 180, 78, .72);
     drawMenu(this.items(), this.sel, 200, 119.5, 14);
     txt(isTouch() ? 'TRYKK PÅ ET VALG' : '< > ELLER OPP/NED = BLA   A = VELG', 200, 202, C.white, 1, 'c');
-    txt('5 ØVELSER · 5 KLUBBER · 1 GULLMEDALJE', 200, 214, '#aab6dd', 1, 'c');
+    txt('5 ØVELSER · 6 KLUBBER · TYRVINGPOENG', 200, 214, '#aab6dd', 1, 'c');
   }
 }
 class HelpScene {
@@ -1186,12 +1237,67 @@ class HelpScene {
       ['HØYDE: LØP INN, TRYKK A NÅR MARKØREN ER I GRØNT. DU HOPPER SELV', C.white],
       ['800 M: JEVN RYTME, SPAR KREFTER. A = SPURT (150 M IGJEN)', C.white],
       ['LØPENE: INNTA PLASSENE - KLAR - SKUDD. TYVSTART = ADVARSEL', C.white],
-      ['SISTE RUNDE PÅ 800 M MARKERES MED BJELLE', C.white],
+      ['KLASSE: VELG KJØNN OG ALDER (11-15 ÅR). RESULTAT OG POENG GJELDER KLASSEN', C.white],
       ['VANSKELIGHET LETT (STANDARD): FART KOMMER AV SEG SELV, TIMING ER BREDERE. BYTT I MENYEN', BC.cyan],
-      ['MANGEKAMP: POENG ETTER HVER ØVELSE. BESTE SAMMENLAGT VINNER', C.white]
+      ['MANGEKAMP: TYRVINGPOENG (TILNÆRMET) ETTER HVER ØVELSE. BESTE SAMMENLAGT VINNER', C.white]
     ];
     L.forEach((l, i) => txt(l[0], 200, 38 + i * 14, l[1], 1, 'c'));
     txt('TRYKK FOR Å GÅ TILBAKE', 200, 204, C.yellow, 1, 'c');
+  }
+}
+
+/* ---------- Klassevalg: kjønn + alder ---------- */
+class ClassScene {
+  constructor() { this.age = Cls.age; this.g = Cls.g; }
+  ctl() { return { pad: 'nav', a: 'OK', b: 'TILBAKE' }; }
+  update() {
+    const tp = Input.tap;
+    if (tp) {
+      if (tp.y > 26 && tp.y < 124) { const g2 = tp.x < 200 ? 'J' : 'G'; if (g2 !== this.g) { this.g = g2; Snd.select(); } }
+      else if (tp.y >= 128 && tp.y < 160) { const i = Math.floor((tp.x - 70) / 52); if (i >= 0 && i < 5) { this.age = 11 + i; Snd.select(); } }
+    }
+    if (Input.hit.l || Input.hit.r) { this.g = this.g === 'J' ? 'G' : 'J'; Snd.select(); }
+    if (Input.hit.u) { this.age = this.age >= 15 ? 11 : this.age + 1; Snd.select(); }
+    if (Input.hit.d) { this.age = this.age <= 11 ? 15 : this.age - 1; Snd.select(); }
+    if (this.t > .2 && Input.hit.b) { Snd.back(); Scenes.go(new TitleScene()); }
+    if (this.t > .2 && Input.hit.a) {
+      Snd.ok(); Cls.g = this.g; Cls.age = this.age; store.set('gender', Cls.g); store.set('age', Cls.age);
+      Scenes.go(new ClubScene());
+    }
+  }
+  draw() {
+    const t = this.t;
+    drawBackdrop(t * 8, t);
+    g.fillStyle = 'rgba(8,12,28,.6)'; g.fillRect(0, 0, W, H);
+    txt('VELG KLASSE', 200, 8, C.yellow, 2, 'c');
+    txt(Game.mode === 'dec' ? 'MANGEKAMP' : 'TREINING', 200, 26, C.white, 1, 'c');
+    [['J', 'JENTE', 100], ['G', 'GUTT', 300]].forEach(([gc, lab, cx]) => {
+      const on = this.g === gc;
+      g.save(); if (on) { g.shadowColor = 'rgba(224,36,44,.5)'; g.shadowBlur = 8; }
+      rrect(g, cx - 62, 36, 124, 86, 4); g.fillStyle = on ? lgrad(g, 36, 122, [[0, 'rgba(60,84,170,.55)'], [1, 'rgba(12,20,56,.7)']]) : 'rgba(10,18,50,.42)'; g.fill(); g.restore();
+      g.save(); rrect(g, cx - 62, 36, 124, 86, 4); g.strokeStyle = on ? 'rgba(255,255,255,.7)' : 'rgba(160,190,255,.22)'; g.lineWidth = on ? 1 : .6; g.stroke(); g.clip();
+      g.fillStyle = on ? BC.red : '#4a5a9a'; g.fillRect(cx - 62, 36, 124, 2.2); g.restore();
+      const col = athCols(Game.club); col.girl = gc === 'J';
+      const f = on ? poseRun(t * 12, 1, 8) : poseStand();
+      groundShadow(cx, 101, 14, 2.6, .4);
+      drawFigure(g, cx, 100, 33, f, col, 1, on ? Math.abs(Math.sin(t * 12)) * .03 : 0);
+      txt(lab, cx, 108, on ? C.yellow : C.white, 2, 'c');
+      if (on) youArrow(cx, 41);
+    });
+    txt('ALDER', 200, 128, C.grey, 1, 'c');
+    for (let i = 0; i < 5; i++) {
+      const age = 11 + i, on = age === this.age, x = 70 + i * 52;
+      g.save(); if (on) { g.shadowColor = 'rgba(224,36,44,.5)'; g.shadowBlur = 7; }
+      slant(g, x, 138, 46, 20, 5, on ? BC.red : 'rgba(10,18,50,.7)'); g.restore();
+      if (on) { g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x + 4, 138, 40, 6); }
+      txt(String(age), x + 23, 142, on ? C.white : '#c9d4ff', 2, 'c');
+    }
+    panel(20, 164, 360, 40, .82);
+    const cc = { g: this.g, age: this.age }, old = [Cls.g, Cls.age]; Cls.g = cc.g; Cls.age = cc.age;
+    txt(Cls.name(), 200, 168, C.white, 2, 'c');
+    txt('= 1000 P:  ' + [0, 1, 2, 3, 4].map(i => ['HEKK ', 'LENGDE ', 'KULE ', 'HØYDE ', '800 M '][i] + (i === 4 ? Math.floor(Cls.ref(i) / 60) + ':' + String(Cls.ref(i) % 60).padStart(2, '0') : fmt2(Cls.ref(i)).replace('.', ','))).join(' · '), 200, 190, '#aab6dd', 1, 'c');
+    Cls.g = old[0]; Cls.age = old[1];
+    txt(isTouch() ? 'VELG KJØNN OG ALDER' : '< > KJØNN   OPP/NED ALDER   A = OK   B = TILBAKE', 200, 212, C.white, 1, 'c');
   }
 }
 
@@ -1200,29 +1306,28 @@ class ClubScene {
   constructor() { this.sel = Game.club; }
   ctl() { return { pad: 'nav', a: 'VELG', b: 'TILBAKE' }; }
   update() {
-    const tp = Input.tap;
-    if (tp && tp.y > 36 && tp.y < 176) { const i = clamp(Math.floor(tp.x / 80), 0, 4); this.sel = i; Input.hit.a = 1; }
-    if (Input.hit.l || Input.hit.u) { this.sel = (this.sel + 4) % 5; Snd.select(); }
-    if (Input.hit.r || Input.hit.d) { this.sel = (this.sel + 1) % 5; Snd.select(); }
-    if (this.t > .2 && Input.hit.b) { Snd.back(); Scenes.go(new TitleScene()); }
+    const n = CLUBS.length, tp = Input.tap;
+    if (tp && tp.y > 36 && tp.y < 176) { const i = clamp(Math.floor(tp.x / (W / n)), 0, n - 1); this.sel = i; Input.hit.a = 1; }
+    if (Input.hit.l || Input.hit.u) { this.sel = (this.sel + n - 1) % n; Snd.select(); }
+    if (Input.hit.r || Input.hit.d) { this.sel = (this.sel + 1) % n; Snd.select(); }
+    if (this.t > .2 && Input.hit.b) { Snd.back(); Scenes.go(new ClassScene()); }
     if (this.t > .2 && Input.hit.a) {
       Snd.ok(); Game.club = this.sel;
       if (Game.mode === 'dec') Game.startDecathlon(); else Game.startTraining();
     }
   }
   draw() {
-    const t = this.t;
+    const t = this.t, n = CLUBS.length, pw = W / n;
     drawBackdrop(t * 8, t);
     g.fillStyle = 'rgba(8,12,28,.55)'; g.fillRect(0, 0, W, H);
     txt('VELG KLUBB', 200, 10, C.yellow, 2, 'c');
-    txt(Game.mode === 'dec' ? 'MANGEKAMP' : 'TREINING', 200, 30, C.white, 1, 'c');
-    for (let i = 0; i < 5; i++) {
-      const cx = 40 + i * 80, on = i === this.sel, k = CLUBS[i];
-      /* kort i sendingsstil */
+    txt((Game.mode === 'dec' ? 'MANGEKAMP' : 'TREINING') + ' · ' + Cls.name(), 200, 30, C.white, 1, 'c');
+    for (let i = 0; i < n; i++) {
+      const cx = pw / 2 + i * pw, on = i === this.sel, k = CLUBS[i], cwid = pw - 5;
       g.save(); if (on) { g.shadowColor = 'rgba(224,36,44,.5)'; g.shadowBlur = 8; }
-      rrect(g, cx - 36, 52, 72, 124, 4); g.fillStyle = on ? lgrad(g, 52, 176, [[0, 'rgba(60,84,170,.55)'], [1, 'rgba(12,20,56,.7)']]) : 'rgba(10,18,50,.42)'; g.fill(); g.restore();
-      g.save(); rrect(g, cx - 36, 52, 72, 124, 4); g.strokeStyle = on ? 'rgba(255,255,255,.7)' : 'rgba(160,190,255,.22)'; g.lineWidth = on ? 1 : .6; g.stroke(); g.clip();
-      g.fillStyle = on ? BC.red : k.c1; g.fillRect(cx - 36, 52, 72, 2.2); g.restore();
+      rrect(g, cx - cwid / 2, 52, cwid, 124, 4); g.fillStyle = on ? lgrad(g, 52, 176, [[0, 'rgba(60,84,170,.55)'], [1, 'rgba(12,20,56,.7)']]) : 'rgba(10,18,50,.42)'; g.fill(); g.restore();
+      g.save(); rrect(g, cx - cwid / 2, 52, cwid, 124, 4); g.strokeStyle = on ? 'rgba(255,255,255,.7)' : 'rgba(160,190,255,.22)'; g.lineWidth = on ? 1 : .6; g.stroke(); g.clip();
+      g.fillStyle = on ? BC.red : k.c1; g.fillRect(cx - cwid / 2, 52, cwid, 2.2); g.restore();
       if (on) youArrow(cx, 56);
       const f = on ? poseRun(t * 12, 1, 8) : poseStand();
       groundShadow(cx, 141, 12, 2.4, .4);
@@ -1281,7 +1386,7 @@ class IntroScene {
     txt(Game.mode === 'dec' && !this.training ? 'ØVELSE ' + (this.i + 1) + ' AV 5' : 'TRENING', 200, 20, C.grey, 1, 'c');
     txt(ev.name, 200, 34, C.yellow, 3, 'c', C.dred);
     INTRO[this.i].forEach((l, k) => txt(l, 200, 68 + k * 14, C.white, 1, 'c'));
-    txt('POENG: ' + ev.ref, 200, 146, C.orange, 1, 'c');
+    txt(Cls.short() + ' · ' + Cls.refText(this.i), 200, 146, C.orange, 1, 'c');
     const f = [poseMark, poseSet, poseShotStand, poseStand, poseStand][this.i];
     drawFigure(g, 70, 200, 30, this.i === 0 || this.i === 4 ? poseRun(this.t * 11, 1, 8) : poseCheer(this.t), athCols(Game.club), 1);
     drawFigure(g, 330, 200, 30, poseRun(this.t * 11 + 2, 1, 8), athCols(Game.club), -1);
@@ -1296,7 +1401,7 @@ function resultRow(ev, ci, y, x, v, tx, pts, rank, hl) {
   txt(rank + '.', x, y, hl ? C.yellow : C.white, 1);
   box(g, x + 14, y, 6, 7, k.c1, '#000'); box(g, x + 20, y, 6, 7, k.c2, '#000');
   txt(ci === Game.club ? 'DU' : k.ab, x + 31, y, hl ? C.yellow : C.white, 1);
-  txt(v != null ? ev.f(v) : (tx || 'NM'), x + 125, y, v != null ? (hl ? C.yellow : C.white) : C.red, 1, 'r');
+  txt(v != null ? ev.f(v) : (tx || 'NM'), x + 124, y, v != null ? (hl ? C.yellow : C.white) : C.red, 1, 'r');
   txt('+' + pts, x + 182, y, C.orange, 1, 'r');
 }
 class ResultScene {
@@ -1318,9 +1423,9 @@ class ResultScene {
     g.fillStyle = 'rgba(8,12,28,.55)'; g.fillRect(0, 0, W, H);
     txt('RESULTAT ' + ev.name, 200, 8, C.yellow, 2, 'c', C.dred);
     panel(8, 30, 192, 120, .85); panel(204, 30, 188, 120, .85);
-    txt('ØVELSEN', 104, 34, C.grey, 1, 'c'); txt('SAMMENLAGT', 298, 34, C.grey, 1, 'c');
+    txt('ØVELSEN · ' + Cls.short(), 104, 34, C.grey, 1, 'c'); txt('SAMMENLAGT (TYRVINGPOENG)', 298, 34, C.grey, 1, 'c');
     this.order.forEach((ci, r) => resultRow(ev, ci, 48 + r * 17, 14, this.vals[ci], this.txtA[ci], this.pts[ci], r + 1, ci === Game.club));
-    const tot = [0, 1, 2, 3, 4].sort((a, b) => Game.totals[b] - Game.totals[a]);
+    const tot = Game.field.slice().sort((a, b) => Game.totals[b] - Game.totals[a]);
     tot.forEach((ci, r) => {
       const y = 48 + r * 17, x = 206, k = CLUBS[ci], hl = ci === Game.club;
       if (hl) { g.fillStyle = 'rgba(255,210,63,.22)'; g.fillRect(x - 3, y - 2, 184, 12); }
@@ -1332,7 +1437,7 @@ class ResultScene {
     });
     const me = this.order.indexOf(Game.club) + 1;
     txt(me === 1 ? 'DU VANT ØVELSEN!' : 'DU BLE NR ' + me + ' I ØVELSEN', 200, 160, me === 1 ? C.yellow : C.white, 2, 'c');
-    txt('+' + this.pts[Game.club] + ' POENG', 200, 180, C.orange, 1, 'c');
+    txt('+' + this.pts[Game.club] + ' TYRVINGPOENG', 200, 180, C.orange, 1, 'c');
     if (this.t > .6 && Math.floor(this.t * 2) % 2 === 0) txt(this.i < 4 ? (isTouch() ? 'NESTE ØVELSE' : 'A = NESTE ØVELSE') : (isTouch() ? 'PREMIEUTDELING' : 'A = PREMIEUTDELING'), 200, 204, C.white, 1, 'c');
   }
 }
@@ -1351,9 +1456,9 @@ class TrainResultScene {
     txt('TRENING: ' + ev.name, 200, 10, C.yellow, 2, 'c', C.dred);
     panel(100, 40, 200, 118, .85);
     this.order.forEach((ci, r) => resultRow(ev, ci, 52 + r * 17, 106, this.vals[ci], this.txtA[ci], this.pts[ci], r + 1, ci === Game.club));
-    const best = Game.bestHist[ev.id];
+    const best = Game.bestHist[ev.id + Cls.key()];
     const mine = this.vals[Game.club];
-    if (mine != null && (best == null || cmpVal(ev, mine, best) < 0)) { Game.bestHist[ev.id] = mine; txt('NY REKORD I TRENING!', 200, 168, C.yellow, 1, 'c'); }
+    if (mine != null && (best == null || cmpVal(ev, mine, best) < 0)) { Game.bestHist[ev.id + Cls.key()] = mine; txt('NY REKORD I TRENING!', 200, 168, C.yellow, 1, 'c'); }
     else if (best != null) txt('DIN BESTE I TRENING: ' + ev.f(best), 200, 168, C.white, 1, 'c');
     txt(isTouch() ? 'NY RUNDE ELLER MENY' : 'A = PRØV IGJEN    B = ØVELSESMENY', 200, 200, C.white, 1, 'c');
   }
@@ -1642,7 +1747,7 @@ class HurdlesScene {
     }
   }
   done() {
-    const vals = [null, null, null, null, null], tx = ['', '', '', '', ''];
+    const vals = Game.nulls(), tx = Game.nulls('');
     this.cpus.forEach(c => vals[c.ci] = c.tf);
     if (this.pl.tf != null && !this.dqed && this.phase !== 'dq') vals[Game.club] = this.pl.tf; else tx[Game.club] = 'DQ';
     Game.eventDone(0, vals, tx, this.training);
@@ -1698,7 +1803,7 @@ class HurdlesScene {
     hudBox(4, 4, 80, 32);
     txt('TID', 9, 6, C.cyan || '#7fa6ff', 1);
     const shown = this.phase === 'start' ? 0 : (p.fin ? p.tf : this.clock);
-    txt(fmt2(shown), 80, 4, C.white, 2, 'r');
+    txt(fmt2(Cls.real(0, shown)), 80, 4, C.white, 2, 'r');
     txt('FART', 9, 23.4, '#9fb4ee', 1);
     meter(34, 25.2, 46, 4.6, p.v / 10.4, p.v > 9 ? '#2ea558' : '#f39c34');
     /* fremdriftsstripe */
@@ -1715,7 +1820,7 @@ class HurdlesScene {
       if (this.phase === 'finish') {
         panel(100, 50, 200, 56, .85);
         txt('MÅL!', 200, 56, C.yellow, 2, 'c');
-        txt(fmt2(p.tf) + ' S', 200, 76, C.white, 2, 'c');
+        txt(fmt2(Cls.real(0, p.tf)) + ' S', 200, 76, C.white, 2, 'c');
         txt(this.place + '. PLASS', 200, 94, this.place === 1 ? C.yellow : C.white, 1, 'c');
         if (e > 1.5 && Math.floor(e * 2) % 2 === 0) txt('A = FORTSETT', 200, 112, C.white, 1, 'c');
       }
@@ -1820,7 +1925,7 @@ class Run800Scene {
     }
   }
   done() {
-    const vals = [null, null, null, null, null], tx = ['', '', '', '', ''];
+    const vals = Game.nulls(), tx = Game.nulls('');
     this.cpus.forEach(c => vals[c.ci] = c.tf);
     if (this.pl.tf != null && this.phase !== 'dq') vals[Game.club] = this.pl.tf; else tx[Game.club] = 'DQ';
     Game.eventDone(4, vals, tx, this.training);
@@ -1872,7 +1977,7 @@ class Run800Scene {
     const p = this.pl, sq = this.seq;
     hudBox(4, 4, 92, 44);
     txt('TID', 9, 6, '#7fa6ff', 1);
-    txt(this.phase === 'start' ? '0.0' : fmtTime1(p.fin ? p.tf : this.realT * R8.TS), 92, 4, C.white, 2, 'r');
+    txt(this.phase === 'start' ? '0.0' : fmtTime1(Cls.real(4, p.fin ? p.tf : this.realT * R8.TS)), 92, 4, C.white, 2, 'r');
     txt('ENERGI', 9, 23, '#9fb4ee', 1);
     meter(50, 24.6, 42, 4.6, p.E / 100, p.E > 40 ? '#2ea558' : (p.E > 15 ? '#f39c34' : '#e0242c'));
     txt('TEMPO', 9, 34, '#9fb4ee', 1);
@@ -1910,7 +2015,7 @@ class Run800Scene {
     if (this.phase === 'finish') {
       panel(100, 50, 200, 56, .85);
       txt('MÅL!', 200, 56, C.yellow, 2, 'c');
-      txt(fmtTime(p.tf), 200, 76, C.white, 2, 'c');
+      txt(fmtTime(Cls.real(4, p.tf)), 200, 76, C.white, 2, 'c');
       txt(this.pPlace + '. PLASS', 200, 94, this.pPlace === 1 ? C.yellow : C.white, 1, 'c');
       if (this.endT > 1.5 && Math.floor(this.endT * 2) % 2 === 0) txt('A = FORTSETT', 200, 112, C.white, 1, 'c');
     }
@@ -1969,18 +2074,18 @@ class FieldBase {
       const tc = me ? BC.navy : C.white;
       txt(String(i + 1), x + 5, yy + .6, me ? BC.red : BC.cyan, 1);
       txt(me ? 'DU' : cl.ab, x + 20, yy + .6, tc, 1);
-      txt(r.v != null ? fmt2(r.v) : '-', x + w - 6, yy + .6, tc, 1, 'r');
+      txt(r.v != null ? fmt2(Cls.real(this.evIdx, r.v)) : '-', x + w - 6, yy + .6, tc, 1, 'r');
     });
   }
   attHud() {
     hudBox(4, 4, 90, 26);
     txt('FORSØK ' + Math.min(this.mine.length + 1, 3) + '/3', 9, 6.6, '#aab6dd', 1);
     const b = this.bestOf(this.mine, 3);
-    txt('BESTE ' + (b != null ? fmt2(b) + ' M' : '-'), 9, 17.4, C.yellow, 1);
+    txt('BESTE ' + (b != null ? fmt2(Cls.real(this.evIdx, b)) + ' M' : '-'), 9, 17.4, C.yellow, 1);
   }
   finalize() {
     this.state = 'end'; this.endT = 0;
-    const vals = [null, null, null, null, null];
+    const vals = Game.nulls();
     Game.cpu().forEach(ci => vals[ci] = this.bestOf(this.cpuAtt[ci], 3));
     vals[Game.club] = this.bestOf(this.mine, 3);
     this.vals = vals;
@@ -1992,7 +2097,7 @@ class FieldBase {
     const e = this.endT, b = this.vals[Game.club];
     panel(100, 44, 200, 62, .88);
     txt(this.evIdx === 3 ? 'FERDIG!' : 'ALLE FORSØK GJORT', 200, 50, BC.cyan, 1, 'c');
-    txt(b != null ? fmt2(b) + unit : 'INGEN GYLDIG', 200, 64, b != null ? C.white : C.red, 2, 'c');
+    txt(b != null ? fmt2(Cls.real(this.evIdx, b)) + unit : 'INGEN GYLDIG', 200, 64, b != null ? C.white : C.red, 2, 'c');
     txt(this.place + '. PLASS', 200, 86, this.place === 1 ? C.yellow : C.white, 1, 'c');
     if (e > .8 && Math.floor(e * 2) % 2 === 0) txt(isTouch() ? 'TRYKK NESTE' : 'A = FORTSETT', 200, 96, '#aab6dd', 1, 'c');
   }
@@ -2001,7 +2106,7 @@ class FieldBase {
     if ((this.endT > .8 && Input.hit.a) || this.endT > 9) this.done();
   }
   done() {
-    const tx = ['', '', '', '', ''];
+    const tx = Game.nulls('');
     if (this.vals[Game.club] == null) tx[Game.club] = this.evIdx === 3 ? 'NM' : 'UGYLDIG';
     Game.eventDone(this.evIdx, this.vals, tx, this.training);
   }
@@ -2113,7 +2218,7 @@ class LongJumpScene extends FieldBase {
       this.marks.push(p.x);
       Snd.sand(); Snd.cheer(j.dist > 6.4 ? 1.6 : .8, j.dist > 6.4 ? .18 : .1);
       for (let i = 0; i < 22; i++) p.particles.push({ x: p.x + rnd(-.3, .3), y: .1, vx: rnd(-2, 3.4), vy: rnd(1.5, 4.2), t: rnd(.3, .7) });
-      this.resText = fmt2(j.dist) + ' M';
+      this.resText = fmt2(Cls.real(1, j.dist)) + ' M';
       if (j.lost > .6) this.resSub = 'SATSEN VAR ' + fmt2(j.lost) + ' M FØR PLANKEN';
       else this.resSub = j.angF > .9 ? 'FIN VINKEL!' : 'VINKELEN KUNNE VÆRT BEDRE';
     }
@@ -2147,10 +2252,11 @@ class LongJumpScene extends FieldBase {
     g.fillStyle = BC.red; g.fillRect(px0 - 7, FB0, 7, 1.3);
     txt('PLANKE', px0 - 3.5, FB1 + 5, '#dfe7ff', 1, 'c');
     /* meter-merker ved gropa */
-    for (let m = 1; m <= 10; m++) {
-      const x = sx(LJ.BOARD + m);
+    for (let m = 1; m <= 9; m++) {
+      const x = sx(LJ.BOARD + Cls.inv(1, m));
+      if (x < -8 || x > W + 8) continue;
       g.fillStyle = C.white; g.fillRect(x - .35, FB0 - 3.4, .8, 2.4);
-      if (m % 2 === 0) txt(String(m), x, FB1 + 5, '#dfe7ff', 1, 'c');
+      txt(String(m), x, FB1 + 5, '#dfe7ff', 1, 'c');
     }
     /* sats-markør før planken */
     if (p.mode === 'run' && p.x < LJ.BOARD - 1.5) {
@@ -2246,7 +2352,7 @@ class ShotScene extends FieldBase {
           this.state = 'result'; this.resT = 0; this.result = D; this.mine.push(D); this.marks.push(bl.x);
           Snd.thud(); Snd.cheer(D > 12 ? 1.8 : .9, D > 12 ? .2 : .1);
           for (let i = 0; i < 16; i++) p.particles.push({ x: bl.x, y: .05, vx: rnd(-2, 2), vy: rnd(1, 3.2), t: rnd(.3, .6) });
-          this.resText = fmt2(D) + ' M';
+          this.resText = fmt2(Cls.real(2, D)) + ' M';
           this.resSub = this.tx.Pf > .8 ? 'GOD KRAFT!' : 'MER KRAFT: TRYKK A RASKERE';
         }
       }
@@ -2272,8 +2378,8 @@ class ShotScene extends FieldBase {
     fieldBand(camPx, FB0, FB1, 'grass');
     const ph = FB1 - FB0, my = FB0 + ph * .5;
     /* utkastsektor: avstandsbuer */
-    for (let m = 2; m <= 22; m += 2) {
-      const x = sx(SP.RING + m); if (x < -12 || x > W + 12) continue;
+    for (let m = 2; m <= 20; m += 2) {
+      const x = sx(SP.RING + Cls.inv(2, m)); if (x < -12 || x > W + 12) continue;
       g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = .7; g.beginPath(); g.moveTo(x, FB0); g.quadraticCurveTo(x + 5, my, x, FB1); g.stroke();
       txt(String(m), x + 1, FB1 + 5, '#dfe7ff', 1, 'c');
     }
@@ -2310,7 +2416,7 @@ class ShotScene extends FieldBase {
       shotBall(sx(bl.x), gy - 1 - bl.y * ppm, 3);
     }
     p.particles.forEach(q => { g.fillStyle = q.t > .25 ? '#8a6a42' : 'rgba(138,106,66,.6)'; g.beginPath(); g.arc(sx(q.x), gy - 1 - q.y * ppm, 1, 0, 6.2832); g.fill(); });
-    if (this.landX != null) { flagAt(sx(this.landX), FY + 4, this.result != null ? C.green : C.red); if (this.result != null) txt(fmt2(this.result) + ' M', sx(this.landX), FY - 28, C.white, 1, 'c'); }
+    if (this.landX != null) { flagAt(sx(this.landX), FY + 4, this.result != null ? C.green : C.red); if (this.result != null) txt(fmt2(Cls.real(this.evIdx, this.result)) + ' M', sx(this.landX), FY - 28, C.white, 1, 'c'); }
     /* HUD */
     this.attHud();
     this.drawBoard(this.boardRows());
@@ -2452,7 +2558,7 @@ class HighJumpScene extends FieldBase {
     }
   }
   success(a) {
-    this.state = 'result'; this.resT = 0; this.resText = 'GODKJENT ' + fmt2(this.barH) + ' M'; this.lastFail = false;
+    this.state = 'result'; this.resT = 0; this.resText = 'GODKJENT ' + fmt2(Cls.real(3, this.barH)) + ' M'; this.lastFail = false;
     this.resSub = a.qs > .88 ? 'PERFEKT TIMING!' : (a.qs > .6 ? 'GOD TIMING' : 'KNAPT - TRYKK LITT NÆRMERE MIDTEN');
     this.cleared = this.barH; this.misses = 0;
     Snd.cheer(1.8, .2); Snd.good();
@@ -2473,7 +2579,7 @@ class HighJumpScene extends FieldBase {
   }
   finish() {
     this.state = 'end'; this.endT = 0;
-    const vals = [null, null, null, null, null];
+    const vals = Game.nulls();
     Game.cpu().forEach(ci => vals[ci] = this.cpuMax[ci]);
     vals[Game.club] = this.cleared;
     this.vals = vals;
@@ -2547,7 +2653,7 @@ class HighJumpScene extends FieldBase {
     p.particles.forEach(q => { g.fillStyle = q.t > .25 ? '#8fb2f6' : 'rgba(143,178,246,.6)'; g.beginPath(); g.arc(sx(q.x), FYH - q.y * ppm, 1.1, 0, 6.2832); g.fill(); });
     /* HUD */
     hudBox(4, 4, 90, 26);
-    txt('LISTA ' + fmt2(this.barH) + ' M', 9, 6.6, C.white, 1);
+    txt('LISTA ' + fmt2(Cls.real(3, this.barH)) + ' M', 9, 6.6, C.white, 1);
     txt('RIV ' + this.misses + '/3', 9, 17.4, this.misses ? '#ff6b6b' : '#aab6dd', 1);
     this.drawBoard(this.boardRows());
     if (this.state !== 'select' && this.state !== 'end') {
@@ -2561,7 +2667,7 @@ class HighJumpScene extends FieldBase {
       panel(70, 46, 260, 100, .88);
       txt('VELG STARTHØYDE', 200, 54, C.yellow, 2, 'c');
       txt('<', 100, 84, C.yellow, 3, 'c'); txt('>', 300, 84, C.yellow, 3, 'c');
-      txt(fmt2(this.barH) + ' M', 200, 84, C.white, 3, 'c');
+      txt(fmt2(Cls.real(3, this.barH)) + ' M', 200, 84, C.white, 3, 'c');
       txt(isTouch() ? 'TRYKK < > ELLER PILENE. OK = START' : '< > ENDRER 5 CM    A = OK', 200, 116, C.white, 1, 'c');
       txt('HØYERE START = FÆRRE HOPP. 3 RIV = UTE.', 200, 130, C.grey, 1, 'c');
     }
@@ -2577,23 +2683,68 @@ class HighJumpScene extends FieldBase {
 }
 
 /* =====================================================================
-   DEL 4c: PREMIEUTDELING – seierspall, fanfare, laviso.no-fotograf, rar premie
+   DEL 4c: PREMIEUTDELING – seierspall, fanfare, fotograf, morsom premie
    ===================================================================== */
+/* ---------- premier: alt fra ei bøtte sild til gavekort på reise til Stjørdal (barnevennlig humor) ---------- */
+const PRIZES = [
+  'Ei bøtte sild', 'Et gavekort på reise til Stjørdal', 'Ei lefse stor som en bordtennisplate', 'Ei pølse i lompe med alt på',
+  'Et års forsyning av brunost (tynne skiver)', 'En vaffel med ekstra mye syltetøy, levert av treneren', 'Ei skål rømmegrøt med smørøye',
+  'Tolv fiskekaker på rad', 'En hel kasse med epler fra Byåsen', 'Ei pakke gummibjørner som må deles med hele laget',
+  'En gullmedalje i sjokolade (spises før den smelter)', 'Ei kanelbolle stor som en lastebildekk', 'Fem liter blåbærsaft',
+  'En gigantisk ostehøvel', 'Ei bøtte lunken havregrøt', 'Ti kilo poteter, rett fra jorda', 'En pose lompe i gull',
+  'En sparkesykkel med bare ett hjul', 'Et par shorts med ekstra mange lommer', 'Et par ullsokker med hull på tærne',
+  'En gul gummiand med eget startnummer', 'En stoppeklokke som går baklengs', 'En hekk i miniformat til lillebror',
+  'En drikkeflaske som lager lyd som en traktor', 'Et kosteskaft å ri på (hest ikke inkludert)', 'En sprettball med eget pass',
+  'Et diplom som verdens raskeste på å knyte skoene', 'Et diplom i å løpe baklengs', 'En medalje av pepperkaker',
+  'En trofékopp av papp, med lokk', 'En pingvindrakt (ikke egnet i Dalgård-sola)', 'En hatt med propell på',
+  'Et klistremerke av en sild', 'En lommelykt som bare lyser på mandager', 'Et diplom som er to meter bredt',
+  'En personlig fanfare, spilt på kam av treneren', 'En paraply som bare virker når sola skinner', 'Et års abonnement på regn i Trondheim',
+  'Retten til å velge fredagsfilm hjemme i en hel måned', 'En hel dag uten lekser (gjelder bare dager uten lekser)',
+  'Ti minutter ekstra skjermtid, brukes med måte', 'Et gavekort på skyss hjem i trillebår', 'Retten til å bli kalt «Sir» resten av dagen',
+  'Retten til å dele ut high five til alle på banen', 'Retten til å stå først i matkøen på neste stevne',
+  'Retten til å velge oppvarmingsdansen på neste trening', 'En hel dag som trener (du får peke og rope)',
+  'Et gavekort på en tur til Munkholmen, bading er valgfritt', 'En tur opp Tyholttårnet for å vinke til alle',
+  'Et gavekort på en tur i Bymarka uten å møte en eneste elg', 'Et bilde av deg selv i gullramme av gjenbrukspapp',
+  'Nøkkelen til gullskapet (det er egentlig bare et skap)', 'En fyldig kakeoppskrift (kaken må du bake selv)', 'En pose med en tilfeldig sokk',
+  'Verdens beste high five, levert av treneren', 'Tre dager som sjef hjemme (mamma og pappa bestemmer ellers)', 'Ei bøtte med litt for mange ispinner',
+  'En stor ballong som sjelden sprekker', 'En tegneserie om en elg som løper 800 m', 'Et bilde av en snømann i juli',
+  'En hund av papir som ligner veldig på en kanin', 'En ekte (litt brukt) målsnor', 'Gratis parkering for sparkesykkelen din i en uke',
+  'Ei lykkemynt fra bunnen av Nidelva (nyvasket)', 'Et sett vannballonger til neste varme dag', 'Et par solbriller for gule sommerdager',
+  'Ei lue med øyne, for dugnad i regnvær', 'En trillebår full av konfetti (du må feie)', 'En stor pose med peanøttfri sjokolade',
+  'En kjempestor boks med knekkebrød', 'Et gavekort på bursdagskake med mye krem', 'En hel kasse med kosedyr som vil bli adoptert',
+  'En t-skjorte med trykket «Jeg vant, og det var gøy»', 'Et skilt der det står «Her bor Byåsenlekenes beste»', 'Ei bok med fine vitser (og noen dårlige)',
+  'Retten til å lede ordentlig høy applaus i 30 sekunder', 'En skive med brunost og en hel høyde av jordbærsyltetøy', 'Et gavekort på ei pølse med ketchup',
+  'En racerbil av papp med eget førerkort', 'Ei bøtte makrell i tomat (til hele familien)', 'Retten til å velge middag en hel uke',
+  'Et gavekort på ti runder på sparkesykkelen rundt Dalgård', 'En kosebamse som kan telle til tre', 'En snurretopp som snurrer litt for lenge',
+  'Ei bøtte seigmenn (kun én farge)', 'En gigantisk fjær fra en ekte (tenkt) fugl', 'Et års forsyning av reflekser til sekken',
+  'Et gavekort på tjue minutter i trampolinepark', 'Et gavekort på ei stor skål med smoothie', 'En myk pute i form av en pølse',
+  'En sprø overraskelse fra kiosken (ingen vet hva det er)', 'En pose popcorn som du ikke trenger å dele (men bør)', 'Et gavekort på en skål med is',
+  'En stjerne som lyser i mørket, til taket på rommet', 'Et pass som gjelder til alle badebassenger i stua', 'En hel bøtte med glitter (beklager til foreldrene)'
+];
+const PRIZE_NOUNS = [['en', 'startblokk'], ['en', 'stoppeklokke'], ['en', 'hekk'], ['en', 'målsnor'], ['en', 'drikkeflaske'], ['en', 'sparkesykkel'], ['en', 'gummiand'], ['en', 'snømann'],
+  ['en', 'ryggsekk'], ['en', 'lue'], ['en', 'pølse'], ['en', 'ostehøvel'], ['en', 'lefse'], ['en', 'fiskekake'], ['et', 'kosedyr'], ['et', 'diplom'], ['et', 'klistremerke'], ['et', 'skilt'], ['et', 'trofé'], ['et', 'flagg'], ['et', 'pepperkakehus'], ['et', 'blåbærsyltetøyglass']];
+const PRIZE_ADJ = ['gigantisk', 'signert', 'pent brukt', 'gullbelagt', 'nyvasket', 'ekte', 'litt for stor', 'helt vanlig', 'hjemmelaget', 'innpakket', 'ganske verdifull', 'litt for liten', 'upåklagelig'];
+const PRIZE_PLACE = ['Byåsen', 'Dalgård', 'Bakklandet', 'Munkholmen', 'Stjørdal', 'Lade', 'Tyholt', 'Ila', 'Heimdal', 'Tiller', 'Klæbu', 'Bymarka', 'bestemor', 'Nidelva', 'Solsiden'];
+const PRIZE_TRIP = ['Stjørdal', 'Hell', 'Malvik', 'Støren', 'Melhus', 'Orkanger', 'Levanger', 'Steinkjer', 'Rissa', 'Klæbu', 'Frosta', 'Ørland', 'Selbu', 'Munkholmen', 'Bymarka'];
+const PRIZE_TRIPX = ['', '', ' (enveis)', ' (med niste)', ' (dagstur)', ' (ta med genser)', ' (billett kjøpes på bussen)', ' (stopp på Hell for kaffe)', ' (nesten helt gratis)'];
+const PRIZE_BUCKET = ['sild', 'makrell', 'blåbær', 'poteter', 'brunost', 'havregrøt', 'seigmenn', 'ispinner', 'fiskeboller', 'multer', 'lompe', 'epler', 'pepperkaker', 'konfetti', 'rømme'];
+const PRIZE_USE = ['vaffelrøre', 'sportsdrikk med bringebærsmak', 'skolebrød fra dugnadskiosken', 'kakao på termos', 'pølser med lompe', 'varm vaffel', 'saft', 'rosiner'];
+const PRIZE_RIGHT = ['bære flagget ved neste dugnad', 'velge musikk i høyttaleren en hel runde', 'rake lengdegropa alene', 'rope «PÅ PLASS» neste søndag', 'sette ut kjeglene i hele sesongen',
+  'sitte på dommerbordet og vifte med flagget', 'bestemme hvilken hekk som skal hete Per', 'få første vaffel på neste dugnad', 'velge pause-øvelse på neste trening', 'dele ut medaljene på neste stevne'];
+let lastPrize = '';
 function makePrize() {
-  const fixed = [
-    'Et gavekort på 3 vafler i kiosken', 'En signert startblokk fra 1994', 'Årsforbruk av sportsdrikk med lakrissmak',
-    'En pent brukt piggsko i str. 46', 'Livslang rabatt på tomme pantebokser', 'En stoppeklokke som går litt for fort',
-    'En halv termos kaffe fra dugnadskiosken', 'Ett års abonnement på Byåsen-bakken (kun nedover)',
-    'En gyllen hekk (ikke ekte gull, ikke ekte hekk)', 'Et diplom du må laminere selv', 'En brukt startpistol (uten krutt)',
-    'Tre ukers fri parkering på Dalgård (gjelder bare søndager)', 'Et signert fotografi av en sko', 'En kasse litt for gamle energibarer'
-  ];
   const gens = [
-    () => pick(['Et gavekort på', 'Gratis', 'Årsforbruk av']) + ' ' + pick(['vafler i kiosken', 'sportsdrikk med lakrissmak', 'skolebrød fra dugnadskiosken', 'energigel med brunostsmak', 'kaffe på termos', 'pølser med lompe']),
-    () => pick(['En signert', 'En pent brukt', 'En ekte', 'En litt for liten']) + ' ' + pick(['startblokk fra 1994', 'piggsko i str. 46', 'stoppeklokke fra Dalgård', 'hekk uten hekkeføtter', 'målsnor', 'målfoto av en ukjent mann', 'drikkebelte']),
-    () => 'Retten til å ' + pick(['bære flagget ved neste dugnad', 'velge musikk i høyttaleren i en hel runde', 'rake lengdegropa alene', 'rope «PÅ PLASS» neste søndag', 'sitte i dommertelt på dugnad', 'sette ut kjegler i hele sesongen'])
+    () => 'Et gavekort på reise til ' + pick(PRIZE_TRIP) + pick(PRIZE_TRIPX),
+    () => 'Ei bøtte ' + pick(PRIZE_BUCKET),
+    () => 'Ett års forbruk av ' + pick(PRIZE_USE),
+    () => 'Retten til å ' + pick(PRIZE_RIGHT),
+    () => { const n = pick(PRIZE_NOUNS); return cap(n[0] + ' ' + pick(PRIZE_ADJ) + ' ' + n[1] + (Math.random() < .55 ? ' fra ' + pick(PRIZE_PLACE) : '')); }
   ];
-  return Math.random() < .45 ? pick(fixed) : pick(gens)();
+  let r = '', n = 0;
+  do { r = Math.random() < .6 ? pick(PRIZES) : pick(gens)(); } while ((r === lastPrize || r.length > 100) && ++n < 20);
+  lastPrize = r; return r;
 }
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 function wrapText(s, n) {
   const out = []; let line = '';
   s.split(' ').forEach(w => { if ((line + ' ' + w).trim().length > n) { out.push(line.trim()); line = w; } else line += ' ' + w; });
@@ -2605,7 +2756,7 @@ class PodiumScene {
   ctl() { return { pad: 'none', a: 'TIL MENY', b: '' }; }
   enter() {
     Music.play('fanfare'); Snd.cheer(4, .25);
-    this.order = [0, 1, 2, 3, 4].sort((a, b) => Game.totals[b] - Game.totals[a] || (a === Game.club ? -1 : 0));
+    this.order = Game.field.slice().sort((a, b) => Game.totals[b] - Game.totals[a] || (a === Game.club ? -1 : 0));
     this.prize = makePrize(); this.prizeLines = wrapText(this.prize, 34);
     this.flash = 0; this.next = 1.1; this.conf = []; this.sparks = []; this.cheerT = 3.5; this.cams = 0;
   }
@@ -2666,21 +2817,20 @@ class PodiumScene {
     });
     /* 4. og 5. plass */
     [3, 4].forEach((k, i) => { const ci = this.order[k]; txt((k + 1) + '. ' + (ci === Game.club ? 'DU' : CLUBS[ci].ab) + '  ' + Game.totals[ci] + ' P', 322 + 0, 160 + i * 11, ci === Game.club ? C.yellow : '#dfe7ff', 1); });
-    /* fotograf med laviso.no-vest */
+    /* fotograf med pressevest */
     const px = 82, shoot = this.flash > 0;
-    const fcol = { c1: '#a6e800', c2: '#2b2f3e', skin: C.skin1, skinD: shade(C.skin1, .8), hair: '#5a3a1e', shoe: '#222' };
+    const fcol = { c1: '#f2b21c', c2: '#2b2f3e', skin: C.skin1, skinD: shade(C.skin1, .8), hair: '#5a3a1e', shoe: '#222' };
     const kneel = Math.floor(T / 3.2) % 2 === 1;
     const pf = poseCamera(T); if (kneel) { pf.h = .52; pf.tl = 80; pf.sl = -5; pf.tr = 20; pf.sr = -90; pf.to = 10; }
     groundShadow(px, PY + .5, 13, 2.4, .38);
     drawFigure(g, px, PY, 30, pf, fcol, 1, shoot ? .0 : Math.sin(T * 3) * .01);
     const camX = px + 17, camY = PY - (kneel ? 30 : 47);
     g.fillStyle = '#15171f'; rrect(g, camX, camY, 9, 6, 1); g.fill(); g.fillStyle = '#4a4f66'; rrect(g, camX + 1, camY - 1.4, 4, 1.8, .6); g.fill(); ball(g, camX + 9, camY + 3, 2.2, '#8ea2ff', .6);
-    txt('L', px - 3, PY - (kneel ? 24 : 36), '#222', 1, 'c', null);
-    /* laviso.no-skilt */
+    /* banner med arrangementsnavn */
     g.fillStyle = '#d9d9d9'; g.fillRect(14, PY - 6, 2, 8); g.fillRect(52, PY - 6, 2, 8);
-    rrect(g, 5, PY - 23, 58, 18, 2.5); g.fillStyle = '#fff'; g.fill(); rrect(g, 6.2, PY - 21.8, 55.6, 15.6, 1.8); g.fillStyle = lgrad(g, PY - 22, PY - 6, [[0, '#1c46a0'], [1, '#0e2260']]); g.fill();
-    g.fillStyle = '#a6e800'; g.fillRect(7, PY - 21, 54, 2);
-    txt('laviso.no', 34, PY - 15, C.white, 1, 'c', null);
+    rrect(g, 5, PY - 23, 58, 18, 2.5); g.fillStyle = '#fff'; g.fill(); rrect(g, 6.2, PY - 21.8, 55.6, 15.6, 1.8); g.fillStyle = lgrad(g, PY - 22, PY - 6, [[0, '#1c2a63'], [1, '#0c1535']]); g.fill();
+    g.fillStyle = BC.red; g.fillRect(7, PY - 21, 54, 2);
+    txt('DALGÅRD', 34, PY - 15, C.white, 1, 'c', null);
     if (shoot) {
       const fx = camX + 10, fy = camY + 3;
       g.fillStyle = '#fff';
@@ -2700,7 +2850,7 @@ class PodiumScene {
       const pe = Math.min(1, (this.t - 1.8) / .4), ph = 22 + this.prizeLines.length * 10;
       const y0 = 43 - (1 - pe) * 30;
       panel(30, y0, 340, ph, .88);
-      txt('TILFELDIG PREMIE TIL VINNEREN', 200, y0 + 4, C.orange, 1, 'c');
+      txt('PREMIE TIL VINNEREN', 200, y0 + 4, C.orange, 1, 'c');
       this.prizeLines.forEach((l, i) => txt(l, 200, y0 + 16 + i * 10, C.white, 1, 'c'));
     }
     const mine = this.order.indexOf(Game.club) + 1;
@@ -2715,6 +2865,7 @@ buildBackdrop();
 resize();
 Snd.muted = store.get('muted', false);
 Assist.on = store.get('easy', true);
+Cls.g = store.get('gender', 'J') === 'G' ? 'G' : 'J'; Cls.age = clamp(parseInt(store.get('age', 13)) || 13, 11, 15);
 document.getElementById('bMute').innerHTML = Snd.muted ? '&#128263;' : '&#128266;';
 document.getElementById('bMute').addEventListener('pointerdown', e => { e.preventDefault(); Snd.init(); Snd.setMuted(!Snd.muted); });
 $('bPause').addEventListener('pointerdown', e => { e.preventDefault(); Snd.init(); Input.press('p'); setTimeout(() => Input.release('p'), 60); });

@@ -50,18 +50,18 @@ class FieldBase {
       const tc = me ? BC.navy : C.white;
       txt(String(i + 1), x + 5, yy + .6, me ? BC.red : BC.cyan, 1);
       txt(me ? 'DU' : cl.ab, x + 20, yy + .6, tc, 1);
-      txt(r.v != null ? fmt2(r.v) : '-', x + w - 6, yy + .6, tc, 1, 'r');
+      txt(r.v != null ? fmt2(Cls.real(this.evIdx, r.v)) : '-', x + w - 6, yy + .6, tc, 1, 'r');
     });
   }
   attHud() {
     hudBox(4, 4, 90, 26);
     txt('FORSØK ' + Math.min(this.mine.length + 1, 3) + '/3', 9, 6.6, '#aab6dd', 1);
     const b = this.bestOf(this.mine, 3);
-    txt('BESTE ' + (b != null ? fmt2(b) + ' M' : '-'), 9, 17.4, C.yellow, 1);
+    txt('BESTE ' + (b != null ? fmt2(Cls.real(this.evIdx, b)) + ' M' : '-'), 9, 17.4, C.yellow, 1);
   }
   finalize() {
     this.state = 'end'; this.endT = 0;
-    const vals = [null, null, null, null, null];
+    const vals = Game.nulls();
     Game.cpu().forEach(ci => vals[ci] = this.bestOf(this.cpuAtt[ci], 3));
     vals[Game.club] = this.bestOf(this.mine, 3);
     this.vals = vals;
@@ -73,7 +73,7 @@ class FieldBase {
     const e = this.endT, b = this.vals[Game.club];
     panel(100, 44, 200, 62, .88);
     txt(this.evIdx === 3 ? 'FERDIG!' : 'ALLE FORSØK GJORT', 200, 50, BC.cyan, 1, 'c');
-    txt(b != null ? fmt2(b) + unit : 'INGEN GYLDIG', 200, 64, b != null ? C.white : C.red, 2, 'c');
+    txt(b != null ? fmt2(Cls.real(this.evIdx, b)) + unit : 'INGEN GYLDIG', 200, 64, b != null ? C.white : C.red, 2, 'c');
     txt(this.place + '. PLASS', 200, 86, this.place === 1 ? C.yellow : C.white, 1, 'c');
     if (e > .8 && Math.floor(e * 2) % 2 === 0) txt(isTouch() ? 'TRYKK NESTE' : 'A = FORTSETT', 200, 96, '#aab6dd', 1, 'c');
   }
@@ -82,7 +82,7 @@ class FieldBase {
     if ((this.endT > .8 && Input.hit.a) || this.endT > 9) this.done();
   }
   done() {
-    const tx = ['', '', '', '', ''];
+    const tx = Game.nulls('');
     if (this.vals[Game.club] == null) tx[Game.club] = this.evIdx === 3 ? 'NM' : 'UGYLDIG';
     Game.eventDone(this.evIdx, this.vals, tx, this.training);
   }
@@ -194,7 +194,7 @@ class LongJumpScene extends FieldBase {
       this.marks.push(p.x);
       Snd.sand(); Snd.cheer(j.dist > 6.4 ? 1.6 : .8, j.dist > 6.4 ? .18 : .1);
       for (let i = 0; i < 22; i++) p.particles.push({ x: p.x + rnd(-.3, .3), y: .1, vx: rnd(-2, 3.4), vy: rnd(1.5, 4.2), t: rnd(.3, .7) });
-      this.resText = fmt2(j.dist) + ' M';
+      this.resText = fmt2(Cls.real(1, j.dist)) + ' M';
       if (j.lost > .6) this.resSub = 'SATSEN VAR ' + fmt2(j.lost) + ' M FØR PLANKEN';
       else this.resSub = j.angF > .9 ? 'FIN VINKEL!' : 'VINKELEN KUNNE VÆRT BEDRE';
     }
@@ -228,10 +228,11 @@ class LongJumpScene extends FieldBase {
     g.fillStyle = BC.red; g.fillRect(px0 - 7, FB0, 7, 1.3);
     txt('PLANKE', px0 - 3.5, FB1 + 5, '#dfe7ff', 1, 'c');
     /* meter-merker ved gropa */
-    for (let m = 1; m <= 10; m++) {
-      const x = sx(LJ.BOARD + m);
+    for (let m = 1; m <= 9; m++) {
+      const x = sx(LJ.BOARD + Cls.inv(1, m));
+      if (x < -8 || x > W + 8) continue;
       g.fillStyle = C.white; g.fillRect(x - .35, FB0 - 3.4, .8, 2.4);
-      if (m % 2 === 0) txt(String(m), x, FB1 + 5, '#dfe7ff', 1, 'c');
+      txt(String(m), x, FB1 + 5, '#dfe7ff', 1, 'c');
     }
     /* sats-markør før planken */
     if (p.mode === 'run' && p.x < LJ.BOARD - 1.5) {
@@ -327,7 +328,7 @@ class ShotScene extends FieldBase {
           this.state = 'result'; this.resT = 0; this.result = D; this.mine.push(D); this.marks.push(bl.x);
           Snd.thud(); Snd.cheer(D > 12 ? 1.8 : .9, D > 12 ? .2 : .1);
           for (let i = 0; i < 16; i++) p.particles.push({ x: bl.x, y: .05, vx: rnd(-2, 2), vy: rnd(1, 3.2), t: rnd(.3, .6) });
-          this.resText = fmt2(D) + ' M';
+          this.resText = fmt2(Cls.real(2, D)) + ' M';
           this.resSub = this.tx.Pf > .8 ? 'GOD KRAFT!' : 'MER KRAFT: TRYKK A RASKERE';
         }
       }
@@ -353,8 +354,8 @@ class ShotScene extends FieldBase {
     fieldBand(camPx, FB0, FB1, 'grass');
     const ph = FB1 - FB0, my = FB0 + ph * .5;
     /* utkastsektor: avstandsbuer */
-    for (let m = 2; m <= 22; m += 2) {
-      const x = sx(SP.RING + m); if (x < -12 || x > W + 12) continue;
+    for (let m = 2; m <= 20; m += 2) {
+      const x = sx(SP.RING + Cls.inv(2, m)); if (x < -12 || x > W + 12) continue;
       g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = .7; g.beginPath(); g.moveTo(x, FB0); g.quadraticCurveTo(x + 5, my, x, FB1); g.stroke();
       txt(String(m), x + 1, FB1 + 5, '#dfe7ff', 1, 'c');
     }
@@ -391,7 +392,7 @@ class ShotScene extends FieldBase {
       shotBall(sx(bl.x), gy - 1 - bl.y * ppm, 3);
     }
     p.particles.forEach(q => { g.fillStyle = q.t > .25 ? '#8a6a42' : 'rgba(138,106,66,.6)'; g.beginPath(); g.arc(sx(q.x), gy - 1 - q.y * ppm, 1, 0, 6.2832); g.fill(); });
-    if (this.landX != null) { flagAt(sx(this.landX), FY + 4, this.result != null ? C.green : C.red); if (this.result != null) txt(fmt2(this.result) + ' M', sx(this.landX), FY - 28, C.white, 1, 'c'); }
+    if (this.landX != null) { flagAt(sx(this.landX), FY + 4, this.result != null ? C.green : C.red); if (this.result != null) txt(fmt2(Cls.real(this.evIdx, this.result)) + ' M', sx(this.landX), FY - 28, C.white, 1, 'c'); }
     /* HUD */
     this.attHud();
     this.drawBoard(this.boardRows());
@@ -533,7 +534,7 @@ class HighJumpScene extends FieldBase {
     }
   }
   success(a) {
-    this.state = 'result'; this.resT = 0; this.resText = 'GODKJENT ' + fmt2(this.barH) + ' M'; this.lastFail = false;
+    this.state = 'result'; this.resT = 0; this.resText = 'GODKJENT ' + fmt2(Cls.real(3, this.barH)) + ' M'; this.lastFail = false;
     this.resSub = a.qs > .88 ? 'PERFEKT TIMING!' : (a.qs > .6 ? 'GOD TIMING' : 'KNAPT - TRYKK LITT NÆRMERE MIDTEN');
     this.cleared = this.barH; this.misses = 0;
     Snd.cheer(1.8, .2); Snd.good();
@@ -554,7 +555,7 @@ class HighJumpScene extends FieldBase {
   }
   finish() {
     this.state = 'end'; this.endT = 0;
-    const vals = [null, null, null, null, null];
+    const vals = Game.nulls();
     Game.cpu().forEach(ci => vals[ci] = this.cpuMax[ci]);
     vals[Game.club] = this.cleared;
     this.vals = vals;
@@ -628,7 +629,7 @@ class HighJumpScene extends FieldBase {
     p.particles.forEach(q => { g.fillStyle = q.t > .25 ? '#8fb2f6' : 'rgba(143,178,246,.6)'; g.beginPath(); g.arc(sx(q.x), FYH - q.y * ppm, 1.1, 0, 6.2832); g.fill(); });
     /* HUD */
     hudBox(4, 4, 90, 26);
-    txt('LISTA ' + fmt2(this.barH) + ' M', 9, 6.6, C.white, 1);
+    txt('LISTA ' + fmt2(Cls.real(3, this.barH)) + ' M', 9, 6.6, C.white, 1);
     txt('RIV ' + this.misses + '/3', 9, 17.4, this.misses ? '#ff6b6b' : '#aab6dd', 1);
     this.drawBoard(this.boardRows());
     if (this.state !== 'select' && this.state !== 'end') {
@@ -642,7 +643,7 @@ class HighJumpScene extends FieldBase {
       panel(70, 46, 260, 100, .88);
       txt('VELG STARTHØYDE', 200, 54, C.yellow, 2, 'c');
       txt('<', 100, 84, C.yellow, 3, 'c'); txt('>', 300, 84, C.yellow, 3, 'c');
-      txt(fmt2(this.barH) + ' M', 200, 84, C.white, 3, 'c');
+      txt(fmt2(Cls.real(3, this.barH)) + ' M', 200, 84, C.white, 3, 'c');
       txt(isTouch() ? 'TRYKK < > ELLER PILENE. OK = START' : '< > ENDRER 5 CM    A = OK', 200, 116, C.white, 1, 'c');
       txt('HØYERE START = FÆRRE HOPP. 3 RIV = UTE.', 200, 130, C.grey, 1, 'c');
     }

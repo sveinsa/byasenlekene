@@ -6,26 +6,34 @@ const Scenes = {
   go(s) { this.cur = s; s.t = 0; this.fade = 1; Input.clear(); Amb.set(s.amb != null ? s.amb : .035); if (s.enter) s.enter(); }
 };
 const Game = {
-  mode: 'dec', club: 0, totals: [0, 0, 0, 0, 0], evIdx: 0, paused: false, trainEv: 0, bestHist: {},
-  cpu() { return [0, 1, 2, 3, 4].filter(i => i !== this.club); },
+  mode: 'dec', club: 0, totals: [0, 0, 0, 0, 0, 0], field: [0, 1, 2, 3, 4], evIdx: 0, paused: false, trainEv: 0, bestHist: {},
+  cpu() { return this.field.filter(i => i !== this.club); },
+  nulls(v = null) { return CLUBS.map(() => v); },
+  /* deltakerfelt: din klubb + 4 tilfeldige av de andre fem */
+  pickField() {
+    const others = CLUBS.map((c, i) => i).filter(i => i !== this.club);
+    for (let i = others.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [others[i], others[j]] = [others[j], others[i]]; }
+    this.field = [this.club].concat(others.slice(0, 4));
+  },
   pause(p) { if (Scenes.cur && Scenes.cur.pausable) { this.paused = p; if (p) Input.clear(); } },
   toTitle() { this.paused = false; Music.stop(); Scenes.go(new TitleScene()); },
   startDecathlon() {
-    this.mode = 'dec'; this.totals = [0, 0, 0, 0, 0]; this.evIdx = 0; this.history = []; this.newSkills();
+    this.mode = 'dec'; this.totals = this.nulls(0); this.evIdx = 0; this.history = []; this.pickField(); this.newSkills();
     Scenes.go(new IntroScene(0, false));
   },
-  newSkills() { this.skill = [0, 1, 2, 3, 4].map(() => clamp(gauss() * .7, -1.3, 1.3)); },
-  startTraining() { this.mode = 'train'; this.newSkills(); Scenes.go(new TrainSelectScene()); },
+  newSkills() { this.skill = CLUBS.map(() => clamp(gauss() * .7, -1.3, 1.3)); },
+  startTraining() { this.mode = 'train'; this.pickField(); this.newSkills(); Scenes.go(new TrainSelectScene()); },
   makeEvent(i, training) {
     return [new HurdlesScene(training), new LongJumpScene(training), new ShotScene(training), new HighJumpScene(training), new Run800Scene(training)][i];
   },
   /* vals[ci] = tall eller null, txt[ci] = tekst ved ugyldig/DQ/NM */
   eventDone(i, vals, txt, training) {
     const ev = EVENTS[i];
-    const pts = vals.map(v => evPoints(ev, v));
-    const order = [0, 1, 2, 3, 4].sort((a, b) => cmpVal(ev, vals[a], vals[b]) || (a === Game.club ? -1 : 0));
+    vals = vals.map(v => Cls.real(i, v));                 /* spillverdi -> resultat i valgt klasse */
+    const pts = vals.map(v => Cls.pts(i, v));
+    const order = this.field.slice().sort((a, b) => cmpVal(ev, vals[a], vals[b]) || (a === Game.club ? -1 : 0));
     if (training) { Scenes.go(new TrainResultScene(i, vals, txt, pts, order)); return; }
-    pts.forEach((p, ci) => this.totals[ci] += p);
+    this.field.forEach(ci => this.totals[ci] += pts[ci]);
     this.history.push({ vals, pts, order });
     Scenes.go(new ResultScene(i, vals, txt, pts, order));
   }
@@ -127,8 +135,8 @@ class TitleScene {
     this.sel = navIndex(this.sel, 5);
     if (this.t > .25 && Input.hit.a) {
       Snd.ok();
-      if (this.sel === 0) { Game.mode = 'dec'; Scenes.go(new ClubScene()); }
-      else if (this.sel === 1) { Game.mode = 'train'; Scenes.go(new ClubScene()); }
+      if (this.sel === 0) { Game.mode = 'dec'; Scenes.go(new ClassScene()); }
+      else if (this.sel === 1) { Game.mode = 'train'; Scenes.go(new ClassScene()); }
       else if (this.sel === 2) Scenes.go(new HelpScene());
       else if (this.sel === 3) { Assist.on = !Assist.on; store.set('easy', Assist.on); }
       else Snd.setMuted(!Snd.muted);
@@ -140,7 +148,7 @@ class TitleScene {
     drawRunTrack(cam);
     for (let i = 0; i < 5; i++) {
       const sp = 70 + i * 9, x = ((t * sp + i * 97) % 560) - 80;
-      drawRunnerAt(i, x, i, poseRun(t * (11 + i * .6) + i, 1, 9));
+      drawRunnerAt([0, 5, 2, 3, 1][i], x, i, poseRun(t * (11 + i * .6) + i, 1, 9));
     }
     /* logo i sendingsstil */
     g.fillStyle = lgrad(g, 0, 78, [[0, 'rgba(6,10,30,.72)'], [1, 'rgba(6,10,30,0)']]); g.fillRect(0, 0, W, 78);
@@ -159,7 +167,7 @@ class TitleScene {
     panel(110, 114, 180, 78, .72);
     drawMenu(this.items(), this.sel, 200, 119.5, 14);
     txt(isTouch() ? 'TRYKK PÅ ET VALG' : '< > ELLER OPP/NED = BLA   A = VELG', 200, 202, C.white, 1, 'c');
-    txt('5 ØVELSER · 5 KLUBBER · 1 GULLMEDALJE', 200, 214, '#aab6dd', 1, 'c');
+    txt('5 ØVELSER · 6 KLUBBER · TYRVINGPOENG', 200, 214, '#aab6dd', 1, 'c');
   }
 }
 class HelpScene {
@@ -182,12 +190,67 @@ class HelpScene {
       ['HØYDE: LØP INN, TRYKK A NÅR MARKØREN ER I GRØNT. DU HOPPER SELV', C.white],
       ['800 M: JEVN RYTME, SPAR KREFTER. A = SPURT (150 M IGJEN)', C.white],
       ['LØPENE: INNTA PLASSENE - KLAR - SKUDD. TYVSTART = ADVARSEL', C.white],
-      ['SISTE RUNDE PÅ 800 M MARKERES MED BJELLE', C.white],
+      ['KLASSE: VELG KJØNN OG ALDER (11-15 ÅR). RESULTAT OG POENG GJELDER KLASSEN', C.white],
       ['VANSKELIGHET LETT (STANDARD): FART KOMMER AV SEG SELV, TIMING ER BREDERE. BYTT I MENYEN', BC.cyan],
-      ['MANGEKAMP: POENG ETTER HVER ØVELSE. BESTE SAMMENLAGT VINNER', C.white]
+      ['MANGEKAMP: TYRVINGPOENG (TILNÆRMET) ETTER HVER ØVELSE. BESTE SAMMENLAGT VINNER', C.white]
     ];
     L.forEach((l, i) => txt(l[0], 200, 38 + i * 14, l[1], 1, 'c'));
     txt('TRYKK FOR Å GÅ TILBAKE', 200, 204, C.yellow, 1, 'c');
+  }
+}
+
+/* ---------- Klassevalg: kjønn + alder ---------- */
+class ClassScene {
+  constructor() { this.age = Cls.age; this.g = Cls.g; }
+  ctl() { return { pad: 'nav', a: 'OK', b: 'TILBAKE' }; }
+  update() {
+    const tp = Input.tap;
+    if (tp) {
+      if (tp.y > 26 && tp.y < 124) { const g2 = tp.x < 200 ? 'J' : 'G'; if (g2 !== this.g) { this.g = g2; Snd.select(); } }
+      else if (tp.y >= 128 && tp.y < 160) { const i = Math.floor((tp.x - 70) / 52); if (i >= 0 && i < 5) { this.age = 11 + i; Snd.select(); } }
+    }
+    if (Input.hit.l || Input.hit.r) { this.g = this.g === 'J' ? 'G' : 'J'; Snd.select(); }
+    if (Input.hit.u) { this.age = this.age >= 15 ? 11 : this.age + 1; Snd.select(); }
+    if (Input.hit.d) { this.age = this.age <= 11 ? 15 : this.age - 1; Snd.select(); }
+    if (this.t > .2 && Input.hit.b) { Snd.back(); Scenes.go(new TitleScene()); }
+    if (this.t > .2 && Input.hit.a) {
+      Snd.ok(); Cls.g = this.g; Cls.age = this.age; store.set('gender', Cls.g); store.set('age', Cls.age);
+      Scenes.go(new ClubScene());
+    }
+  }
+  draw() {
+    const t = this.t;
+    drawBackdrop(t * 8, t);
+    g.fillStyle = 'rgba(8,12,28,.6)'; g.fillRect(0, 0, W, H);
+    txt('VELG KLASSE', 200, 8, C.yellow, 2, 'c');
+    txt(Game.mode === 'dec' ? 'MANGEKAMP' : 'TREINING', 200, 26, C.white, 1, 'c');
+    [['J', 'JENTE', 100], ['G', 'GUTT', 300]].forEach(([gc, lab, cx]) => {
+      const on = this.g === gc;
+      g.save(); if (on) { g.shadowColor = 'rgba(224,36,44,.5)'; g.shadowBlur = 8; }
+      rrect(g, cx - 62, 36, 124, 86, 4); g.fillStyle = on ? lgrad(g, 36, 122, [[0, 'rgba(60,84,170,.55)'], [1, 'rgba(12,20,56,.7)']]) : 'rgba(10,18,50,.42)'; g.fill(); g.restore();
+      g.save(); rrect(g, cx - 62, 36, 124, 86, 4); g.strokeStyle = on ? 'rgba(255,255,255,.7)' : 'rgba(160,190,255,.22)'; g.lineWidth = on ? 1 : .6; g.stroke(); g.clip();
+      g.fillStyle = on ? BC.red : '#4a5a9a'; g.fillRect(cx - 62, 36, 124, 2.2); g.restore();
+      const col = athCols(Game.club); col.girl = gc === 'J';
+      const f = on ? poseRun(t * 12, 1, 8) : poseStand();
+      groundShadow(cx, 101, 14, 2.6, .4);
+      drawFigure(g, cx, 100, 33, f, col, 1, on ? Math.abs(Math.sin(t * 12)) * .03 : 0);
+      txt(lab, cx, 108, on ? C.yellow : C.white, 2, 'c');
+      if (on) youArrow(cx, 41);
+    });
+    txt('ALDER', 200, 128, C.grey, 1, 'c');
+    for (let i = 0; i < 5; i++) {
+      const age = 11 + i, on = age === this.age, x = 70 + i * 52;
+      g.save(); if (on) { g.shadowColor = 'rgba(224,36,44,.5)'; g.shadowBlur = 7; }
+      slant(g, x, 138, 46, 20, 5, on ? BC.red : 'rgba(10,18,50,.7)'); g.restore();
+      if (on) { g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x + 4, 138, 40, 6); }
+      txt(String(age), x + 23, 142, on ? C.white : '#c9d4ff', 2, 'c');
+    }
+    panel(20, 164, 360, 40, .82);
+    const cc = { g: this.g, age: this.age }, old = [Cls.g, Cls.age]; Cls.g = cc.g; Cls.age = cc.age;
+    txt(Cls.name(), 200, 168, C.white, 2, 'c');
+    txt('= 1000 P:  ' + [0, 1, 2, 3, 4].map(i => ['HEKK ', 'LENGDE ', 'KULE ', 'HØYDE ', '800 M '][i] + (i === 4 ? Math.floor(Cls.ref(i) / 60) + ':' + String(Cls.ref(i) % 60).padStart(2, '0') : fmt2(Cls.ref(i)).replace('.', ','))).join(' · '), 200, 190, '#aab6dd', 1, 'c');
+    Cls.g = old[0]; Cls.age = old[1];
+    txt(isTouch() ? 'VELG KJØNN OG ALDER' : '< > KJØNN   OPP/NED ALDER   A = OK   B = TILBAKE', 200, 212, C.white, 1, 'c');
   }
 }
 
@@ -196,29 +259,28 @@ class ClubScene {
   constructor() { this.sel = Game.club; }
   ctl() { return { pad: 'nav', a: 'VELG', b: 'TILBAKE' }; }
   update() {
-    const tp = Input.tap;
-    if (tp && tp.y > 36 && tp.y < 176) { const i = clamp(Math.floor(tp.x / 80), 0, 4); this.sel = i; Input.hit.a = 1; }
-    if (Input.hit.l || Input.hit.u) { this.sel = (this.sel + 4) % 5; Snd.select(); }
-    if (Input.hit.r || Input.hit.d) { this.sel = (this.sel + 1) % 5; Snd.select(); }
-    if (this.t > .2 && Input.hit.b) { Snd.back(); Scenes.go(new TitleScene()); }
+    const n = CLUBS.length, tp = Input.tap;
+    if (tp && tp.y > 36 && tp.y < 176) { const i = clamp(Math.floor(tp.x / (W / n)), 0, n - 1); this.sel = i; Input.hit.a = 1; }
+    if (Input.hit.l || Input.hit.u) { this.sel = (this.sel + n - 1) % n; Snd.select(); }
+    if (Input.hit.r || Input.hit.d) { this.sel = (this.sel + 1) % n; Snd.select(); }
+    if (this.t > .2 && Input.hit.b) { Snd.back(); Scenes.go(new ClassScene()); }
     if (this.t > .2 && Input.hit.a) {
       Snd.ok(); Game.club = this.sel;
       if (Game.mode === 'dec') Game.startDecathlon(); else Game.startTraining();
     }
   }
   draw() {
-    const t = this.t;
+    const t = this.t, n = CLUBS.length, pw = W / n;
     drawBackdrop(t * 8, t);
     g.fillStyle = 'rgba(8,12,28,.55)'; g.fillRect(0, 0, W, H);
     txt('VELG KLUBB', 200, 10, C.yellow, 2, 'c');
-    txt(Game.mode === 'dec' ? 'MANGEKAMP' : 'TREINING', 200, 30, C.white, 1, 'c');
-    for (let i = 0; i < 5; i++) {
-      const cx = 40 + i * 80, on = i === this.sel, k = CLUBS[i];
-      /* kort i sendingsstil */
+    txt((Game.mode === 'dec' ? 'MANGEKAMP' : 'TREINING') + ' · ' + Cls.name(), 200, 30, C.white, 1, 'c');
+    for (let i = 0; i < n; i++) {
+      const cx = pw / 2 + i * pw, on = i === this.sel, k = CLUBS[i], cwid = pw - 5;
       g.save(); if (on) { g.shadowColor = 'rgba(224,36,44,.5)'; g.shadowBlur = 8; }
-      rrect(g, cx - 36, 52, 72, 124, 4); g.fillStyle = on ? lgrad(g, 52, 176, [[0, 'rgba(60,84,170,.55)'], [1, 'rgba(12,20,56,.7)']]) : 'rgba(10,18,50,.42)'; g.fill(); g.restore();
-      g.save(); rrect(g, cx - 36, 52, 72, 124, 4); g.strokeStyle = on ? 'rgba(255,255,255,.7)' : 'rgba(160,190,255,.22)'; g.lineWidth = on ? 1 : .6; g.stroke(); g.clip();
-      g.fillStyle = on ? BC.red : k.c1; g.fillRect(cx - 36, 52, 72, 2.2); g.restore();
+      rrect(g, cx - cwid / 2, 52, cwid, 124, 4); g.fillStyle = on ? lgrad(g, 52, 176, [[0, 'rgba(60,84,170,.55)'], [1, 'rgba(12,20,56,.7)']]) : 'rgba(10,18,50,.42)'; g.fill(); g.restore();
+      g.save(); rrect(g, cx - cwid / 2, 52, cwid, 124, 4); g.strokeStyle = on ? 'rgba(255,255,255,.7)' : 'rgba(160,190,255,.22)'; g.lineWidth = on ? 1 : .6; g.stroke(); g.clip();
+      g.fillStyle = on ? BC.red : k.c1; g.fillRect(cx - cwid / 2, 52, cwid, 2.2); g.restore();
       if (on) youArrow(cx, 56);
       const f = on ? poseRun(t * 12, 1, 8) : poseStand();
       groundShadow(cx, 141, 12, 2.4, .4);
@@ -277,7 +339,7 @@ class IntroScene {
     txt(Game.mode === 'dec' && !this.training ? 'ØVELSE ' + (this.i + 1) + ' AV 5' : 'TRENING', 200, 20, C.grey, 1, 'c');
     txt(ev.name, 200, 34, C.yellow, 3, 'c', C.dred);
     INTRO[this.i].forEach((l, k) => txt(l, 200, 68 + k * 14, C.white, 1, 'c'));
-    txt('POENG: ' + ev.ref, 200, 146, C.orange, 1, 'c');
+    txt(Cls.short() + ' · ' + Cls.refText(this.i), 200, 146, C.orange, 1, 'c');
     const f = [poseMark, poseSet, poseShotStand, poseStand, poseStand][this.i];
     drawFigure(g, 70, 200, 30, this.i === 0 || this.i === 4 ? poseRun(this.t * 11, 1, 8) : poseCheer(this.t), athCols(Game.club), 1);
     drawFigure(g, 330, 200, 30, poseRun(this.t * 11 + 2, 1, 8), athCols(Game.club), -1);
@@ -292,7 +354,7 @@ function resultRow(ev, ci, y, x, v, tx, pts, rank, hl) {
   txt(rank + '.', x, y, hl ? C.yellow : C.white, 1);
   box(g, x + 14, y, 6, 7, k.c1, '#000'); box(g, x + 20, y, 6, 7, k.c2, '#000');
   txt(ci === Game.club ? 'DU' : k.ab, x + 31, y, hl ? C.yellow : C.white, 1);
-  txt(v != null ? ev.f(v) : (tx || 'NM'), x + 125, y, v != null ? (hl ? C.yellow : C.white) : C.red, 1, 'r');
+  txt(v != null ? ev.f(v) : (tx || 'NM'), x + 124, y, v != null ? (hl ? C.yellow : C.white) : C.red, 1, 'r');
   txt('+' + pts, x + 182, y, C.orange, 1, 'r');
 }
 class ResultScene {
@@ -314,9 +376,9 @@ class ResultScene {
     g.fillStyle = 'rgba(8,12,28,.55)'; g.fillRect(0, 0, W, H);
     txt('RESULTAT ' + ev.name, 200, 8, C.yellow, 2, 'c', C.dred);
     panel(8, 30, 192, 120, .85); panel(204, 30, 188, 120, .85);
-    txt('ØVELSEN', 104, 34, C.grey, 1, 'c'); txt('SAMMENLAGT', 298, 34, C.grey, 1, 'c');
+    txt('ØVELSEN · ' + Cls.short(), 104, 34, C.grey, 1, 'c'); txt('SAMMENLAGT (TYRVINGPOENG)', 298, 34, C.grey, 1, 'c');
     this.order.forEach((ci, r) => resultRow(ev, ci, 48 + r * 17, 14, this.vals[ci], this.txtA[ci], this.pts[ci], r + 1, ci === Game.club));
-    const tot = [0, 1, 2, 3, 4].sort((a, b) => Game.totals[b] - Game.totals[a]);
+    const tot = Game.field.slice().sort((a, b) => Game.totals[b] - Game.totals[a]);
     tot.forEach((ci, r) => {
       const y = 48 + r * 17, x = 206, k = CLUBS[ci], hl = ci === Game.club;
       if (hl) { g.fillStyle = 'rgba(255,210,63,.22)'; g.fillRect(x - 3, y - 2, 184, 12); }
@@ -328,7 +390,7 @@ class ResultScene {
     });
     const me = this.order.indexOf(Game.club) + 1;
     txt(me === 1 ? 'DU VANT ØVELSEN!' : 'DU BLE NR ' + me + ' I ØVELSEN', 200, 160, me === 1 ? C.yellow : C.white, 2, 'c');
-    txt('+' + this.pts[Game.club] + ' POENG', 200, 180, C.orange, 1, 'c');
+    txt('+' + this.pts[Game.club] + ' TYRVINGPOENG', 200, 180, C.orange, 1, 'c');
     if (this.t > .6 && Math.floor(this.t * 2) % 2 === 0) txt(this.i < 4 ? (isTouch() ? 'NESTE ØVELSE' : 'A = NESTE ØVELSE') : (isTouch() ? 'PREMIEUTDELING' : 'A = PREMIEUTDELING'), 200, 204, C.white, 1, 'c');
   }
 }
@@ -347,9 +409,9 @@ class TrainResultScene {
     txt('TRENING: ' + ev.name, 200, 10, C.yellow, 2, 'c', C.dred);
     panel(100, 40, 200, 118, .85);
     this.order.forEach((ci, r) => resultRow(ev, ci, 52 + r * 17, 106, this.vals[ci], this.txtA[ci], this.pts[ci], r + 1, ci === Game.club));
-    const best = Game.bestHist[ev.id];
+    const best = Game.bestHist[ev.id + Cls.key()];
     const mine = this.vals[Game.club];
-    if (mine != null && (best == null || cmpVal(ev, mine, best) < 0)) { Game.bestHist[ev.id] = mine; txt('NY REKORD I TRENING!', 200, 168, C.yellow, 1, 'c'); }
+    if (mine != null && (best == null || cmpVal(ev, mine, best) < 0)) { Game.bestHist[ev.id + Cls.key()] = mine; txt('NY REKORD I TRENING!', 200, 168, C.yellow, 1, 'c'); }
     else if (best != null) txt('DIN BESTE I TRENING: ' + ev.f(best), 200, 168, C.white, 1, 'c');
     txt(isTouch() ? 'NY RUNDE ELLER MENY' : 'A = PRØV IGJEN    B = ØVELSESMENY', 200, 200, C.white, 1, 'c');
   }

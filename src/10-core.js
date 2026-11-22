@@ -171,12 +171,12 @@ function resize() {
     const s = Math.min(iw / W, ih / H); cw = W * s; ch = H * s; cl = (iw - cw) / 2; ct = (ih - ch) / 2;
     mini('bMute', iw - 42, 6); mini('bFs', iw - 84, 6); $('bPause').style.display = 'none'; $('hint').style.display = 'none';
   } else if (land) {
-    const gut = clamp(iw * .13, 88, 190), s = Math.min((iw - 2 * gut) / W, ih / H);
+    const gut = clamp(iw * .145, 96, 200), s = Math.min((iw - 2 * gut) / W, ih / H);
     cw = W * s; ch = H * s; cl = (iw - cw) / 2; ct = (ih - ch) / 2;
     const gw = cl, sz = Math.min(gw * .8, ih * .27, 124);
     $('zL').style.cssText = `left:0;top:0;width:${px(gw)};height:${px(ih)}`;
     $('zR').style.cssText = `left:${px(iw - gw)};top:0;width:${px(gw)};height:${px(ih)}`;
-    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(gw * .86)); tc.style.setProperty('--ph', px(Math.min(ih * .72, 330)));
+    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(gw * .86)); tc.style.setProperty('--cw', px(Math.min(gw * .94, ih * .5, 190))); tc.style.setProperty('--ph', px(Math.min(ih * .72, 330)));
     const mx = iw - gw / 2 - 17;
     mini('bMute', mx, 8); mini('bFs', mx, 50); mini('bPause', mx, 92); $('bPause').style.display = 'flex'; $('hint').style.display = 'none';
   } else {
@@ -184,7 +184,7 @@ function resize() {
     const top = ch + 26, zh = ih - top, sz = Math.min(iw * .27, zh * .3, 132);
     $('zL').style.cssText = `left:0;top:${px(top)};width:${px(iw / 2)};height:${px(zh)}`;
     $('zR').style.cssText = `left:${px(iw / 2)};top:${px(top)};width:${px(iw / 2)};height:${px(zh)}`;
-    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(iw * .44)); tc.style.setProperty('--ph', px(Math.min(zh * .8, 260)));
+    tc.style.setProperty('--s', px(sz)); tc.style.setProperty('--pw', px(iw * .44)); tc.style.setProperty('--cw', px(Math.min(iw * .44, zh * .55, 200))); tc.style.setProperty('--ph', px(Math.min(zh * .8, 260)));
     mini('bMute', iw - 42, ch + 4); mini('bFs', iw - 84, ch + 4); mini('bPause', iw - 126, ch + 4); $('bPause').style.display = 'flex';
     const h = $('hint'); h.style.display = 'block'; h.style.top = px(ch + 6); h.style.right = px(136); h.style.left = '0';
   }

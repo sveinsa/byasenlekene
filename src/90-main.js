@@ -5,6 +5,7 @@ buildBackdrop();
 resize();
 Snd.muted = store.get('muted', false);
 Assist.on = store.get('easy', true);
+Cls.g = store.get('gender', 'J') === 'G' ? 'G' : 'J'; Cls.age = clamp(parseInt(store.get('age', 13)) || 13, 11, 15);
 document.getElementById('bMute').innerHTML = Snd.muted ? '&#128263;' : '&#128266;';
 document.getElementById('bMute').addEventListener('pointerdown', e => { e.preventDefault(); Snd.init(); Snd.setMuted(!Snd.muted); });
 $('bPause').addEventListener('pointerdown', e => { e.preventDefault(); Snd.init(); Input.press('p'); setTimeout(() => Input.release('p'), 60); });

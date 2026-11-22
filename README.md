@@ -15,7 +15,7 @@ Alle stier er relative, så det fungerer også i en undermappe. Filen `.nojekyll
 Hovedmenyen har valget **Vanskelighet: lett / normal**. Lett er standard og gjør spillet enklere på mobil: løperen får selv opp farten (taksing gir bonus), timingvinduene er bredere (hekker, høydehopp, vinkel), lengdehopp hopper automatisk ved planken, kulestøt støter selv ved ringkanten og 800 m går i jogg uten trykk. Valget huskes på enheten.
 
 ## Kontroller
-**Mobil (anbefalt liggende):** stort gult LØP-felt til venstre (trykk raskt og jevnt, feltet bytter selv mellom venstre og høyre). Knappene A og B til høyre skifter navn etter øvelsen. Minnestyring (lyd, fullskjerm, pause) ligger i sidekanten. Menyvalg kan trykkes direkte.
+**Mobil (anbefalt liggende):** kontrollkors (som på en spillkontroller) til venstre i menyene, og stort gult LØP-felt til venstre i øvelsene (trykk raskt og jevnt, feltet bytter selv mellom venstre og høyre). Knappene A og B til høyre skifter navn etter øvelsen. Minnestyring (lyd, fullskjerm, pause) ligger i sidekanten. Menyvalg kan trykkes direkte.
 
 **Tastatur:** ← → eller A/D løper, Z/Mellomrom/Enter = A, X/Shift = B, P/Esc = pause, M = lyd.
 
@@ -26,7 +26,12 @@ Hovedmenyen har valget **Vanskelighet: lett / normal**. Lett er standard og gjø
 - **Høyde** (enklere): velg høyde, A starter tilløpet, trykk A én gang når løperen er i det grønne feltet foran lista. Svaien gjøres automatisk. B = pass. Tre riv = ute.
 - **800 m**: «Innta plassene» og skudd. Bjella ringer når første løper går inn i siste runde. A = spurt siste 150 m.
 
-Mangekamp = 5 øvelser mot 4 CPU-klubber med poengtabell. Treningsmodus = fritt valg. Premieutdeling med laviso.no-fotograf etter 800 m.
+Mangekamp = 5 øvelser mot 4 CPU-klubber (tilfeldig utvalg av de 5 andre klubbene) med Tyrvingpoeng. Treningsmodus = fritt valg. Premieutdeling med fotograf og tilfeldig, morsom premie (alt fra ei bøtte sild til gavekort på reise til Stjørdal) etter 800 m.
+
+## Klasse og Tyrvingpoeng
+Etter menyvalget velger du **kjønn (jente/gutt)** og **alder (11–15 år)**. Figurene vises som jente (hestehale) eller gutt, og resultatene (hekketid, lengde, kule, høyde, 800 m) skaleres til nivået i klassen. Poengene regnes som **Tyrvingpoeng**, ca. 1000 poeng = referanseresultat i klassen. Tabellene (`CLASS_REF` og `Cls.pts` i `src/20-data.js`) er *tilnærmet* – NFFs eksakte Tyrvingtabell er ikke brukt, så tallene kan justeres. Valget huskes på enheten.
+
+**Klubber:** Byåsen IL, Ranheim IL, Strindheim IL, Nidelv IL, Trondheim Friidrett og Utleira IL.
 
 ## Bygge på nytt
 Kildekoden ligger i `src/`. Kjør `./build.sh` (krever `node` for syntakssjekk) for å lime sammen `index.html`.
@@ -36,7 +41,7 @@ Kildekoden ligger i `src/`. Kjør `./build.sh` (krever `node` for syntakssjekk) 
 - `src/20-data.js` – klubber/farger (`CLUBS`) og utøvertegning
 - `HJ`, `LJ`, `SP`, `R8`, `HK` – konstanter per øvelse; `Game.skill` – CPU-styrke
 
-Klubbfarger: Byåsen (marineblå/rød) er etter bilder, de andre er omtrentlige. Endres i `CLUBS`.
+Klubbfarger: Byåsen (marineblå/rød) er etter bilder, de andre (også Utleira, oransje/svart) er omtrentlige. Endres i `CLUBS`.
 
 ## Merknader
 - Lyd og tale starter først etter første trykk (nettleserkrav). Tale bruker enhetens norske stemme hvis den finnes.
