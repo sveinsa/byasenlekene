@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Byåsenlekene mangekamp</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="description" content="Retro arkade-mangekamp fra Dalgård friidrettsbane i Trondheim. Spill rett i nettleseren – også på mobil.">
+<meta name="theme-color" content="#0b0f1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Byåsenlekene">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+html,body{margin:0;height:100%;background:#0b0f1a;overflow:hidden;overscroll-behavior:none;touch-action:none;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;font-family:'Barlow Condensed','Roboto Condensed','sans-serif-condensed','Arial Narrow',system-ui,sans-serif;font-style:italic;font-weight:800}
+#wrap{position:fixed;left:0;top:0;width:100%;height:100%}
+canvas{position:absolute;display:block;image-rendering:auto;background:#05081a;touch-action:none}
+#hint{display:none;position:fixed;color:#7d8aa8;font-size:12px;padding:0 10px;box-sizing:border-box;line-height:1.3}
+.mini{position:fixed;width:34px;height:34px;border-radius:10px;border:1.5px solid rgba(160,190,255,.45);box-sizing:border-box;
+  background:linear-gradient(180deg,rgba(30,46,104,.8),rgba(8,13,38,.85));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.4);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:6;cursor:pointer;left:0;top:0}
+#touch{position:fixed;left:0;top:0;right:0;bottom:0;z-index:4;display:none;pointer-events:none;--s:90px;--pw:110px;--ph:260px}
+body.touch #touch{display:block}
+.zone{position:absolute;display:flex;align-items:center;justify-content:center;pointer-events:none;box-sizing:border-box}
+body.land #zR{flex-direction:column;justify-content:flex-end;gap:calc(var(--s)*.22);padding-bottom:calc(var(--s)*.35)}
+body.land #zL{align-items:flex-end;padding-bottom:calc(var(--s)*.3)}
+body.port #zR{flex-direction:row;align-items:flex-end;justify-content:center;gap:calc(var(--s)*.18);padding-bottom:calc(var(--s)*.25)}
+body.port #zL{align-items:flex-end;padding-bottom:calc(var(--s)*.25)}
+.btn{pointer-events:auto;touch-action:none;box-sizing:border-box;border-radius:24%;
+  background:linear-gradient(180deg,rgba(60,84,170,.62),rgba(12,20,56,.78));border:2px solid rgba(170,196,255,.55);
+  box-shadow:0 3px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  color:rgba(255,255,255,.95);font:italic 800 calc(var(--s)*.36) 'Barlow Condensed','Roboto Condensed','sans-serif-condensed','Arial Narrow',system-ui,sans-serif;
+  text-shadow:0 1px 3px rgba(0,0,0,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;cursor:pointer;transition:transform .05s}
+.btn small{font:italic 800 calc(var(--s)*.15) 'Barlow Condensed','Roboto Condensed','sans-serif-condensed','Arial Narrow',system-ui,sans-serif;opacity:.95;margin-top:calc(var(--s)*.05);letter-spacing:1px;text-align:center}
+.btn.on{background:linear-gradient(180deg,rgba(150,176,255,.75),rgba(60,84,170,.8));transform:scale(.95);box-shadow:0 1px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.5)}
+.round{border-radius:50%}
+#kA{width:var(--s);height:var(--s);background:linear-gradient(180deg,rgba(240,70,76,.78),rgba(130,16,26,.88));border-color:rgba(255,160,160,.9)}
+#kA.on{background:linear-gradient(180deg,rgba(255,130,134,.9),rgba(190,30,40,.92))}
+#kB small{font-size:calc(var(--s)*.12);letter-spacing:.3px}
+#kB{display:none;width:calc(var(--s)*.76);height:calc(var(--s)*.76);background:linear-gradient(180deg,rgba(70,130,255,.75),rgba(16,40,130,.88));border-color:rgba(160,195,255,.95);font-size:calc(var(--s)*.3)}
+body[data-b="1"] #kB{display:flex}
+#dpad{display:none;grid-template-columns:1fr 1fr;gap:calc(var(--s)*.1);width:var(--pw)}
+#dpad .btn{width:auto;height:calc(var(--s)*.62);font-size:calc(var(--s)*.26)}
+#runpad{display:none;width:var(--pw);height:var(--ph);border-radius:calc(var(--s)*.3);background:linear-gradient(180deg,rgba(255,214,70,.3),rgba(120,84,0,.5));border-color:rgba(255,214,90,.9);color:#ffe27a;font-size:calc(var(--s)*.34)}
+#runpad small{font-size:calc(var(--s)*.16)}
+#runpad.on{background:linear-gradient(180deg,rgba(255,226,120,.6),rgba(180,130,10,.7))}
+body[data-pad="nav"] #dpad{display:grid}
+body[data-pad="run"] #runpad,body[data-pad="a"] #runpad{display:flex}
+body[data-pad="none"] #zL{visibility:hidden}
+</style>
+</head>
+<body class="land">
+<div id="wrap"><canvas id="c" width="400" height="225"></canvas></div>
+<div id="hint">Snu telefonen til liggende for best opplevelse</div>
+<div class="mini" id="bMute" title="Lyd">&#128266;</div>
+<div class="mini" id="bFs" title="Fullskjerm">&#9974;</div>
+<div class="mini" id="bPause" title="Pause" style="display:none">&#10074;&#10074;</div>
+<div id="touch">
+  <div class="zone" id="zL">
+    <div id="dpad">
+      <div class="btn" data-k="l">&#9664;</div><div class="btn" data-k="r">&#9654;</div>
+      <div class="btn" data-k="u">&#9650;</div><div class="btn" data-k="d">&#9660;</div>
+    </div>
+    <div class="btn" id="runpad"><span id="runLab">LØP</span><small id="runSub">TRYKK RASKT</small></div>
+  </div>
+  <div class="zone" id="zR">
+    <div class="btn round" id="kB" data-k="b">B<small id="bLab"></small></div>
+    <div class="btn round" id="kA" data-k="a">A<small id="aLab"></small></div>
+  </div>
+</div>
+<script>
