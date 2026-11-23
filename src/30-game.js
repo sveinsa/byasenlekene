@@ -180,21 +180,19 @@ class HelpScene {
     const tch = isTouch();
     const L = [
       ['KONTROLLER', C.yellow],
-      tch ? ['MOBIL: STORT LØPEFELT = TRYKK RASKT OG JEVNT (FELTET VEKSLER SELV VENSTRE/HØYRE)', C.white]
-          : ['VENSTRE/HØYRE (PILTASTER ELLER A/D) ETTER HVERANDRE = FART', C.white],
-      tch ? ['KNAPPENE A OG B TIL HØYRE. NAVN OG FUNKSJON ENDRES ETTER ØVELSEN', C.grey]
-          : ['Z/MELLOMROM = A,  X = B,  P = PAUSE,  M = LYD', C.grey],
-      ['60 M HEKK: TRYKK A (HOPP) RETT FØR HEKKEN', C.white],
-      ['LENGDE: LØP OPP FART, HOLD A FOR SATSVINKEL, SLIPP FØR PLANKEN', C.white],
-      ['KULE: A = START OG KRAFT, B = STØT. IKKE TRÅKK OVER', C.white],
-      ['HØYDE: LØP INN, TRYKK A NÅR MARKØREN ER I GRØNT. DU HOPPER SELV', C.white],
-      ['800 M: JEVN RYTME, SPAR KREFTER. A = SPURT (150 M IGJEN)', C.white],
-      ['LØPENE: INNTA PLASSENE - KLAR - SKUDD. TYVSTART = ADVARSEL', C.white],
-      ['KLASSE: VELG KJØNN OG ALDER (11-15 ÅR). RESULTAT OG POENG GJELDER KLASSEN', C.white],
-      ['VANSKELIGHET LETT (STANDARD): FART KOMMER AV SEG SELV, TIMING ER BREDERE. BYTT I MENYEN', BC.cyan],
-      ['MANGEKAMP: TYRVINGPOENG (TILNÆRMET) ETTER HVER ØVELSE. BESTE SAMMENLAGT VINNER', C.white]
+      tch ? ['STORT LØPEFELT: TRYKK RASKT OG JEVNT', C.white]
+          : ['VENSTRE/HØYRE (PILER ELLER A/D) ETTER HVERANDRE = FART', C.white],
+      ...(tch ? [['KNAPPENE A OG B TIL HØYRE ENDRER NAVN ETTER ØVELSEN', C.grey]]
+          : [['ENTER (ELLER MELLOMROM) = VELG / HOPP / START', C.yellow], ['BACKSPACE (ELLER X) = TILBAKE / STØT', C.yellow], ['P = PAUSE,  M = LYD', C.grey]]),
+      ['60 M HEKK: TRYKK A RETT FØR HEKKEN', C.white],
+      ['LENGDE: HOLD A FOR VINKEL, SLIPP FØR PLANKEN', C.white],
+      ['KULE: A = KRAFT, B = STØT. IKKE TRÅKK OVER', C.white],
+      ['HØYDE: TRYKK A NÅR MARKØREN ER I GRØNT', C.white],
+      ['800 M: JEVN RYTME. A = SPURT NÅR 150 M GJENSTÅR', C.white],
+      ['KLASSE OG ALDER GIR TYRVINGPOENG (TILNÆRMET). BESTE SUM VINNER', C.white],
+      ['VANSKELIGHET LETT: FART KOMMER AV SEG SELV (BYTT I MENYEN)', BC.cyan]
     ];
-    L.forEach((l, i) => txt(l[0], 200, 38 + i * 14, l[1], 1, 'c'));
+    L.forEach((l, i) => txt(l[0], 200, 36 + i * 13, l[1], 1, 'c'));
     txt('TRYKK FOR Å GÅ TILBAKE', 200, 204, C.yellow, 1, 'c');
   }
 }
@@ -248,7 +246,7 @@ class ClassScene {
     panel(20, 164, 360, 40, .82);
     const cc = { g: this.g, age: this.age }, old = [Cls.g, Cls.age]; Cls.g = cc.g; Cls.age = cc.age;
     txt(Cls.name(), 200, 168, C.white, 2, 'c');
-    txt('= 1000 P:  ' + [0, 1, 2, 3, 4].map(i => ['HEKK ', 'LENGDE ', 'KULE ', 'HØYDE ', '800 M '][i] + (i === 4 ? Math.floor(Cls.ref(i) / 60) + ':' + String(Cls.ref(i) % 60).padStart(2, '0') : fmt2(Cls.ref(i)).replace('.', ','))).join(' · '), 200, 190, '#aab6dd', 1, 'c');
+    txt('1000 P: ' + [0, 1, 2, 3, 4].map(i => ['HEKK ', 'LENGDE ', 'KULE ', 'HØYDE ', '800 '][i] + (i === 4 ? Math.floor(Cls.ref(i) / 60) + ':' + String(Cls.ref(i) % 60).padStart(2, '0') : fmt2(Cls.ref(i)).replace('.', ','))).join(' · '), 200, 190, '#aab6dd', 1, 'c');
     Cls.g = old[0]; Cls.age = old[1];
     txt(isTouch() ? 'VELG KJØNN OG ALDER' : '< > KJØNN   OPP/NED ALDER   A = OK   B = TILBAKE', 200, 212, C.white, 1, 'c');
   }

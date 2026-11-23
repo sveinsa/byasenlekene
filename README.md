@@ -17,7 +17,7 @@ Hovedmenyen har valget **Vanskelighet: lett / normal**. Lett er standard og gjø
 ## Kontroller
 **Mobil (anbefalt liggende):** kontrollkors (som på en spillkontroller) til venstre i menyene, og stort gult LØP-felt til venstre i øvelsene (trykk raskt og jevnt, feltet bytter selv mellom venstre og høyre). Knappene A og B til høyre skifter navn etter øvelsen. Minnestyring (lyd, fullskjerm, pause) ligger i sidekanten. Menyvalg kan trykkes direkte.
 
-**Tastatur:** ← → eller A/D løper, Z/Mellomrom/Enter = A, X/Shift = B, P/Esc = pause, M = lyd.
+**Tastatur (PC):** ← → (eller A/D) løper, **Enter** (eller Mellomrom/Z) = A, **Backspace** (eller X/Shift) = B, P/Esc = pause, M = lyd. På PC vises «ENTER» og «BACKSPACE» i spillet i stedet for A og B.
 
 ## Øvelser
 - **60 m hekk**: «Innta plassene – Klar – skudd». Løp med raske trykk, A rett før hekken.

@@ -66,7 +66,9 @@ function T(ctx, s, x, y, col = C.white, sc = 1, al = 'l', sh = C.black) {
   ctx.fillStyle = col; ctx.fillText(s, x + ox, by);
   ctx.restore();
 }
-const txt = (s, x, y, col, sc, al, sh) => T(g, s, x, y, col, sc, al, sh);
+/* På PC heter tastene Enter og Backspace – vis det i stedet for A og B */
+const keyTxt = s => (typeof isTouch === 'function' && isTouch()) ? s : s.replace(/\bA\b(?![\/-])/g, 'ENTER').replace(/\bB\b(?![\/-])/g, 'BACKSPACE');
+const txt = (s, x, y, col, sc, al, sh) => T(g, keyTxt(s), x, y, col, sc, al, sh);
 function box(ctx, x, y, w, h, fill, border) {
   if (border) { ctx.fillStyle = border; ctx.fillRect(x - 1, y - 1, w + 2, h + 2); }
   ctx.fillStyle = fill; ctx.fillRect(x, y, w, h);
